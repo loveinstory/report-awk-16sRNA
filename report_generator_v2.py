@@ -495,6 +495,8 @@ def build_page3(data):
 
     # 构建环形图（SVG）
     total_ratio = sum(float(g.get("ratio", "0").replace("%", "")) for g in genus)
+    top10_ratio = f"{total_ratio:.2f}%"
+    
     donut_svg = f'''<svg viewBox="0 0 200 200" width="180" height="180" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)">'''
 
     # 绘制环形图扇区
@@ -533,14 +535,8 @@ def build_page3(data):
 
     donut_svg += '</svg>'
 
-    # 中心文字
-    donut_center = f'''<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;z-index:10">
-        <div style="font-size:8px;color:#888">Top 10 总相对丰度</div>
-        <div style="font-size:18px;font-weight:bold;color:#2B6B5E">{total_ratio:.2f}%</div>
-    </div>'''
-
-    # 标签（左右分布）
-    labels_html = ""
+    # 图例（左右分布）
+    donut_legend = ""
     for i, g in enumerate(genus):
         name = g.get("name", "")
         ratio = g.get("ratio", "")
@@ -549,22 +545,26 @@ def build_page3(data):
         # 左侧放6-10，右侧放1-5
         if i < 5:
             # 右侧
-            top = 5 + i * 15
-            labels_html += f'''<div style="position:absolute;right:5px;top:{top}mm;text-align:left">
-                <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:{color};color:white;text-align:center;line-height:16px;font-size:8px;font-weight:bold;vertical-align:middle">{i+1}</span>
-                <span style="font-weight:bold;font-size:10px">{name}</span><br>
-                <span style="font-size:10px;color:#2B6B5E;font-weight:bold;margin-left:20px">{ratio}</span>
+            top = 8 + i * 15
+            donut_legend += f'''<div class="genus-item right" style="right:5px;top:{top}mm">
+                <div class="genus-rank" style="background:{color}">{i+1}</div>
+                <div class="genus-info">
+                    <span class="genus-name">{name}</span>
+                    <span class="genus-ratio">{ratio}</span>
+                </div>
             </div>'''
         else:
             # 左侧
-            top = 5 + (i - 5) * 15
-            labels_html += f'''<div style="position:absolute;left:5px;top:{top}mm;text-align:right">
-                <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:{color};color:white;text-align:center;line-height:16px;font-size:8px;font-weight:bold;vertical-align:middle">{i+1}</span>
-                <span style="font-weight:bold;font-size:10px">{name}</span><br>
-                <span style="font-size:10px;color:#2B6B5E;font-weight:bold;margin-left:20px">{ratio}</span>
+            top = 8 + (i - 5) * 15
+            donut_legend += f'''<div class="genus-item left" style="left:5px;top:{top}mm">
+                <div class="genus-rank" style="background:{color}">{i+1}</div>
+                <div class="genus-info">
+                    <span class="genus-name">{name}</span>
+                    <span class="genus-ratio">{ratio}</span>
+                </div>
             </div>'''
 
-    donut_chart = donut_svg + donut_center + labels_html
+    donut_chart = donut_svg
 
     # 有益菌表格行
     beneficial_rows = ""
@@ -612,51 +612,46 @@ def build_page3(data):
             <td class="tag-cell">{tag}</td>
         </tr>'''
     
-    # 有害菌表格行
+    # 有害菌表格行（3列）
     harmful_rows = ""
     
     # 如果没有有害菌数据，使用默认数据
     if not harmful:
         harmful = [
-            {"name": "梭杆菌", "result": "1.2%"},
-            {"name": "肠球菌", "result": "0.8%"},
-            {"name": "大肠杆菌", "result": "0.5%"},
+            {"name": "沙门氏菌", "result": "未检出"},
+            {"name": "志贺氏菌", "result": "未检出"},
+            {"name": "弯曲菌", "result": "未检出"},
+            {"name": "幽门螺杆菌", "result": "未检出"},
         ]
     
-    harmful_summary = "当前有害菌水平整体较低，无需过度关注。"
+    harmful_summary = "有害菌/致病菌未检出，表明肠道致病菌风险较低，肠道环境相对安全。"
     
     for h in harmful:
         name = h.get("name", "")
         result = h.get("result", "")
-        # 判断水平
+        # 判断结果
         if "低于检测限" in result or "未检出" in result:
-            level = "未检出"
-            tag = '<span class="result-tag result-good">良好</span>'
-            ratio_display = "-"
+            tag = '<span class="result-tag result-normal">正常</span>'
+            result_display = "未检出"
         else:
             try:
                 val = float(result.replace("%", ""))
                 if val >= 5:
-                    level = "高"
-                    tag = '<span class="result-tag result-poor">需关注</span>'
+                    tag = '<span class="result-tag result-fair">需关注</span>'
                     harmful_summary = "检测到有害菌水平较高，建议关注并咨询专业医生。"
                 elif val >= 1:
-                    level = "中"
                     tag = '<span class="result-tag result-fair">中等</span>'
                 else:
-                    level = "低"
                     tag = '<span class="result-tag result-good">良好</span>'
-                ratio_display = f"{val:.2f}"
+                result_display = f"{val:.2f}%"
             except:
-                level = "-"
                 tag = ""
-                ratio_display = result
+                result_display = result
         
         harmful_rows += f'''<tr>
-            <td class="name-cell">{name}</td>
-            <td class="ratio-cell">{ratio_display}%</td>
-            <td class="level-cell">{level}</td>
-            <td class="tag-cell">{tag}</td>
+            <td>{name}</td>
+            <td>{result_display}</td>
+            <td>{tag}</td>
         </tr>'''
     
     # B/E比值（双歧杆菌属/肠杆菌科）
@@ -684,6 +679,8 @@ def build_page3(data):
     
     replacements = {
         "{{donut_chart}}": donut_chart,
+        "{{donut_legend}}": donut_legend,
+        "{{top10_ratio}}": top10_ratio,
         "{{beneficial_rows}}": beneficial_rows,
         "{{harmful_rows}}": harmful_rows,
         "{{harmful_summary}}": harmful_summary,
