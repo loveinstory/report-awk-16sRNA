@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+@page { size: A4; margin: 0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+    width: 210mm;
+    min-height: 297mm;
+    color: #333;
+}
+.page {
+    width: 210mm;
+    height: 297mm;
+    padding: 4mm 5mm;
+    page-break-after: always;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2mm;
+    border-bottom: 2px solid #2B6B5E;
+    padding-bottom: 2mm;
+}
+.section-header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.section-logo {
+    height: 32px;
+    margin-right: 4px;
+}
+.section-num {
+    width: 24px;
+    height: 24px;
+    background: #2B6B5E;
+    color: white;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+}
+.section-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #1a1a1a;
+    white-space: nowrap;
+}
+.section-header-right {
+    font-size: 7px;
+    color: #888;
+    text-align: right;
+    line-height: 1.3;
+}
+.section-header-right-icon {
+    display: inline-block;
+    color: #2B6B5E;
+    margin-right: 3px;
+}
+/* Donut chart area */
+.donut-section {
+    text-align: center;
+    margin: 2mm 0;
+}
+.donut-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 2mm;
+}
+.donut-container {
+    position: relative;
+    width: 180mm;
+    height: 78mm;
+    margin: 0 auto;
+}
+.donut-center-text {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 10;
+}
+.donut-center-icon {
+    font-size: 14px;
+    color: #2B6B5E;
+    margin-bottom: 2px;
+}
+.donut-center-label {
+    font-size: 9px;
+    color: #888;
+}
+.donut-center-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2B6B5E;
+}
+.genus-label {
+    position: absolute;
+    font-size: 9px;
+}
+.genus-rank {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 18px;
+    font-size: 9px;
+    font-weight: bold;
+    color: white;
+    margin-right: 3px;
+    vertical-align: middle;
+}
+.genus-name { font-weight: bold; font-size: 10.5px; }
+.genus-ratio { font-size: 11px; color: #2B6B5E; font-weight: bold; }
+.donut-note {
+    font-size: 8px;
+    color: #aaa;
+    margin-top: 2mm;
+}
+/* Two column cards */
+.two-col {
+    display: flex;
+    gap: 8px;
+    margin: 3mm 0;
+}
+.col-card {
+    flex: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e8eded;
+}
+.col-card-header {
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: bold;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.col-card-header-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+.col-card-header.green { background: linear-gradient(135deg, #43A047, #66BB6A); }
+.col-card-header.red { background: linear-gradient(135deg, #E53935, #EF5350); }
+.col-card-body {
+    padding: 8px 12px;
+}
+.col-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5px;
+}
+.col-table th {
+    text-align: left;
+    padding: 6px 4px;
+    border-bottom: 1.5px solid #e0e0e0;
+    color: #555;
+    font-size: 9px;
+    font-weight: 600;
+}
+.col-table td {
+    padding: 6px 4px;
+    border-bottom: 1px solid #f0f0f0;
+}
+.col-table .result-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 8.5px;
+    font-weight: bold;
+}
+.result-good { background: #E8F5E9; color: #4CAF50; border: 1px solid #4CAF50; }
+.result-fair { background: #FFF3E0; color: #E8833A; border: 1px solid #E8833A; }
+.result-normal { background: #E8F5E9; color: #4CAF50; border: 1px solid #4CAF50; }
+.col-card-footer {
+    padding: 8px 14px;
+    font-size: 9px;
+    color: #555;
+    background: #f8fafb;
+    border-top: 1px solid #e8e8e8;
+    line-height: 1.5;
+}
+.col-card-footer-icon {
+    color: #2B6B5E;
+    margin-right: 4px;
+}
+/* BE ratio section */
+.be-section {
+    margin-top: 3mm;
+    padding: 12px 14px;
+    border: 1.5px solid #e8eded;
+    border-radius: 10px;
+}
+.be-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #2B6B5E;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.be-title-icon {
+    font-size: 16px;
+}
+.be-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+.be-value-area {
+    text-align: center;
+    min-width: 90px;
+}
+.be-value-label {
+    font-size: 9px;
+    color: #666;
+    margin-bottom: 3px;
+}
+.be-value-num {
+    font-size: 32px;
+    font-weight: bold;
+    color: #E53935;
+}
+.be-value-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: bold;
+    background: #FFEBEE;
+    color: #E53935;
+    border: 1px solid #E53935;
+    margin-top: 3px;
+}
+.be-scale {
+    flex: 1;
+}
+.be-desc {
+    font-size: 9px;
+    color: #555;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+.be-scale-bar {
+    height: 16px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #E53935 0%, #FF5722 15%, #FF9800 30%, #FFC107 45%, #CDDC39 60%, #8BC34A 75%, #4CAF50 90%, #2E7D32 100%);
+    position: relative;
+    margin: 12px 0 6px 0;
+}
+.be-scale-marker {
+    position: absolute;
+    top: -5px;
+    width: 3px;
+    height: 26px;
+    background: #222;
+    border-radius: 1px;
+}
+.be-scale-value {
+    position: absolute;
+    top: -20px;
+    font-size: 9px;
+    font-weight: bold;
+    color: #333;
+    background: white;
+    padding: 2px 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+.be-scale-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 8px;
+    color: #888;
+    line-height: 1.3;
+}
+.be-advice {
+    margin-top: 8px;
+    padding: 9px 14px;
+    background: #FFF8E1;
+    border-radius: 8px;
+    border-left: 4px solid #FF9800;
+    font-size: 9.5px;
+    color: #555;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+.be-advice-icon {
+    color: #FF9800;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.be-advice-title {
+    font-weight: bold;
+    color: #E8833A;
+}
+.footnote {
+    margin-top: 3mm;
+    font-size: 8px;
+    color: #aaa;
+}
+</style>
+</head>
+<body>
+<div class="page">
+    <div class="section-header">
+        <div class="section-header-left">
+            <img src="{{logo_w_image}}" alt="logo" class="section-logo"/>
+            <div class="section-title">肠道菌群精细组成 & 有益/有害菌分析</div>
+        </div>
+        <div class="section-header-right">
+            <span class="section-header-right-icon">⚕</span> 肠道微生态检测报告<br>GUT MICROBIOME ANALYSIS REPORT
+        </div>
+    </div>
+
+    <div class="donut-section">
+        <div class="donut-title">Top 10 菌属相对丰度分布</div>
+        <div class="donut-container">
+            {{donut_chart}}
+        </div>
+        <div class="donut-note">注：相对丰度指该菌属在所有检测菌群中的相对百分比</div>
+    </div>
+
+    <div class="two-col">
+        <div class="col-card">
+            <div class="col-card-header green"><span class="col-card-header-icon">⊕</span> 有益菌检测</div>
+            <div class="col-card-body">
+                <table class="col-table">
+                    <thead>
+                        <tr><th>菌属名称</th><th>相对丰度(%)</th><th>水平评估</th><th>结果判定</th></tr>
+                    </thead>
+                    <tbody>
+                        {{beneficial_rows}}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-card-footer"><span class="col-card-footer-icon">ⓘ</span> 有益菌有助于维持肠道微生态平衡，增强屏障功能，促进营养吸收，提升免疫力。</div>
+        </div>
+        <div class="col-card">
+            <div class="col-card-header red"><span class="col-card-header-icon">⊗</span> 有害菌/致病菌检测</div>
+            <div class="col-card-body">
+                <table class="col-table">
+                    <thead>
+                        <tr><th>菌属名称</th><th>检测结果</th><th>结果判定</th></tr>
+                    </thead>
+                    <tbody>
+                        {{harmful_rows}}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-card-footer"><span class="col-card-footer-icon">ⓘ</span> {{harmful_summary}}</div>
+        </div>
+    </div>
+
+    <div class="be-section">
+        <div class="be-title"><span class="be-title-icon">⚖</span> B/E 比值（双歧杆菌属/大肠杆菌属）</div>
+        <div class="be-content">
+            <div class="be-value-area">
+                <div class="be-value-label">您的 B/E 比值</div>
+                <div class="be-value-num">{{be_value}}</div>
+                <div class="be-value-status">{{be_status}}</div>
+            </div>
+            <div class="be-scale">
+                <div class="be-desc">B/E 比值反映肠道健康平衡状态，数值越接近1.0 说明肠道菌群平衡越好。</div>
+                <div class="be-scale-bar">
+                    <div class="be-scale-marker" style="left: {{be_marker_pos}}%;">
+                        <div class="be-scale-value">{{be_value}}</div>
+                    </div>
+                </div>
+                <div class="be-scale-labels">
+                    <span>0</span>
+                    <span>0.25<br>极低（失衡）</span>
+                    <span>0.50<br>偏低</span>
+                    <span>0.75<br>中等</span>
+                    <span>良好</span>
+                    <span>1.0<br>优秀</span>
+                </div>
+            </div>
+        </div>
+        <div class="be-advice">
+            <span class="be-advice-icon">⚠</span>
+            <div><span class="be-advice-title">建议：</span>{{be_advice}}</div>
+        </div>
+    </div>
+
+    <div class="footnote">* 本报告基于高通量测序技术分析，仅供参考，不作为临床诊断依据。</div>
+</div>
+</body>
+</html>

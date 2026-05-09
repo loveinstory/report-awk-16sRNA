@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+@page { size: A4; margin: 0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+    width: 210mm;
+    min-height: 297mm;
+    color: #333;
+}
+.page {
+    width: 210mm;
+    height: 297mm;
+    padding: 4mm 5mm;
+    page-break-after: always;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2mm;
+    border-bottom: 2px solid #2B6B5E;
+    padding-bottom: 2mm;
+}
+.section-header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.section-logo {
+    height: 32px;
+    margin-right: 4px;
+}
+.section-num {
+    width: 24px;
+    height: 24px;
+    background: #2B6B5E;
+    color: white;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+}
+.section-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #1a1a1a;
+    white-space: nowrap;
+}
+.section-header-right {
+    font-size: 7px;
+    color: #888;
+    text-align: right;
+    line-height: 1.3;
+}
+.section-header-right-icon {
+    display: inline-block;
+    color: #2B6B5E;
+    margin-right: 3px;
+}
+/* AI Conclusion */
+.ai-card {
+    background: #f8fafb;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 3mm 0;
+    border: 1px solid #e8eded;
+    display: flex;
+    gap: 14px;
+}
+.ai-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #2B6B5E, #3A9D7C);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+.ai-content {
+    flex: 1;
+}
+.ai-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #2B6B5E;
+    margin-bottom: 6px;
+}
+.ai-text {
+    font-size: 10px;
+    line-height: 1.8;
+    color: #444;
+}
+.ai-highlight {
+    font-weight: bold;
+    color: #E8833A;
+}
+/* Advice sections */
+.advice-block {
+    margin: 3mm 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e8eded;
+    display: flex;
+}
+.advice-left {
+    width: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 8px;
+    background: #f8fafb;
+    border-right: 1px solid #e8eded;
+}
+.advice-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    background: #E8833A;
+}
+.advice-icon-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 6px;
+}
+.advice-label {
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    color: #444;
+    line-height: 1.4;
+}
+.advice-right {
+    flex: 1;
+    padding: 12px 16px;
+    border-left: 4px solid;
+}
+.advice-right.border-green { border-left-color: #4CAF50; }
+.advice-right.border-blue { border-left-color: #1976D2; }
+.advice-right.border-orange { border-left-color: #E8833A; }
+.advice-item {
+    font-size: 10px;
+    line-height: 1.9;
+    color: #444;
+    padding-left: 14px;
+    position: relative;
+}
+.advice-item::before {
+    content: "●";
+    position: absolute;
+    left: 0;
+    color: #E8833A;
+    font-size: 9px;
+}
+.advice-item strong {
+    color: #222;
+}
+/* Timeline */
+.timeline-section {
+    margin-top: 4mm;
+    padding: 12px 14px;
+    border: 1.5px solid #e8eded;
+    border-radius: 10px;
+}
+.timeline-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #2B6B5E;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.timeline-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 30px;
+    position: relative;
+}
+.timeline-bar::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 40px;
+    right: 40px;
+    height: 4px;
+    background: linear-gradient(90deg, #1976D2 0%, #1976D2 50%, #E8833A 100%);
+    transform: translateY(-50%);
+    border-radius: 2px;
+}
+.timeline-node {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    position: relative;
+    z-index: 1;
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.timeline-node.node-1 { background: #1976D2; }
+.timeline-node.node-2 { background: #1976D2; }
+.timeline-node.node-3 { background: #E8833A; }
+.timeline-labels {
+    display: flex;
+    justify-content: space-around;
+    margin: 4px 0 8px 0;
+}
+.timeline-label {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: 9px;
+    font-weight: bold;
+}
+.timeline-label.label-1 { background: #E3F2FD; color: #1976D2; }
+.timeline-label.label-2 { background: #E3F2FD; color: #1976D2; }
+.timeline-label.label-3 { background: #FFF3E0; color: #E8833A; }
+.timeline-phases {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 6px;
+}
+.timeline-phase {
+    flex: 1;
+    padding: 10px 12px;
+    background: #f8fafb;
+    border-radius: 8px;
+    border: 1px solid #e8eded;
+}
+.phase-title {
+    font-size: 11px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 4px;
+}
+.phase-desc {
+    font-size: 9px;
+    color: #555;
+    line-height: 1.5;
+}
+.phase-goal {
+    font-size: 9px;
+    margin-top: 4px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+.phase-goal.goal-1 { color: #4CAF50; }
+.phase-goal.goal-2 { color: #E8833A; }
+.phase-goal.goal-3 { color: #E8833A; }
+.timeline-note {
+    margin-top: 8px;
+    font-size: 8.5px;
+    color: #888;
+    text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="page">
+    <div class="section-header">
+        <div class="section-header-left">
+            <img src="{{logo_w_image}}" alt="logo" class="section-logo"/>
+            <div class="section-title">精准评估与健康管理建议</div>
+        </div>
+        <div class="section-header-right">
+            <span class="section-header-right-icon">⚕</span> 肠道微生态检测报告<br>GUT MICROBIOME ANALYSIS REPORT
+        </div>
+    </div>
+
+    <div class="ai-card">
+        <div class="ai-icon">AI</div>
+        <div class="ai-content">
+            <div class="ai-title">AI智能解读结论</div>
+            <div class="ai-text">{{ai_conclusion}}</div>
+        </div>
+    </div>
+
+    <div class="advice-block">
+        <div class="advice-left">
+            <div class="advice-num">1</div>
+            <img class="advice-icon-img" src="{{icon_diet}}" alt="饮食"/>
+            <div class="advice-label">饮食调节<br>建议</div>
+        </div>
+        <div class="advice-right border-green">
+            {{diet_items}}
+        </div>
+    </div>
+
+    <div class="advice-block">
+        <div class="advice-left">
+            <div class="advice-num">2</div>
+            <img class="advice-icon-img" src="{{icon_probiotic}}" alt="益生菌"/>
+            <div class="advice-label">益生菌<br>补充建议</div>
+        </div>
+        <div class="advice-right border-blue">
+            {{probiotic_items}}
+        </div>
+    </div>
+
+    <div class="advice-block">
+        <div class="advice-left">
+            <div class="advice-num">3</div>
+            <img class="advice-icon-img" src="{{icon_exercise}}" alt="运动"/>
+            <div class="advice-label">运动与生活<br>方式建议</div>
+        </div>
+        <div class="advice-right border-orange">
+            {{lifestyle_items}}
+        </div>
+    </div>
+
+    <div class="timeline-section">
+        <div class="timeline-title">📋 干预随访计划</div>
+        <div class="timeline-bar">
+            <div class="timeline-node node-1">📋</div>
+            <div class="timeline-node node-2">📈</div>
+            <div class="timeline-node node-3">✓</div>
+        </div>
+        <div class="timeline-labels">
+            <span class="timeline-label label-1">第一阶段 1-4周</span>
+            <span class="timeline-label label-2">第二阶段 1-3个月</span>
+            <span class="timeline-label label-3">第三阶段 3个月后</span>
+        </div>
+        <div class="timeline-phases">
+            <div class="timeline-phase">
+                <div class="phase-title">适应与调整期</div>
+                <div class="phase-desc">{{phase1_desc}}</div>
+                <div class="phase-goal goal-1">✓ {{phase1_goal}}</div>
+            </div>
+            <div class="timeline-phase">
+                <div class="phase-title">改善与巩固期</div>
+                <div class="phase-desc">{{phase2_desc}}</div>
+                <div class="phase-goal goal-2">◎ {{phase2_goal}}</div>
+            </div>
+            <div class="timeline-phase">
+                <div class="phase-title">维持与优化期</div>
+                <div class="phase-desc">{{phase3_desc}}</div>
+                <div class="phase-goal goal-3">◎ {{phase3_goal}}</div>
+            </div>
+        </div>
+        <div class="timeline-note">ⓘ 建议根据个人情况及随访结果调整干预方案。如有不适或症状持续，请及时咨询专业医生。</div>
+    </div>
+</div>
+</body>
+</html>

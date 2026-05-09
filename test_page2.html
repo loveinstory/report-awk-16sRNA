@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+@page { size: A4; margin: 0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+    width: 210mm;
+    min-height: 297mm;
+    color: #333;
+}
+.page {
+    width: 210mm;
+    height: 297mm;
+    padding: 4mm 5mm;
+    page-break-after: always;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2mm;
+    border-bottom: 2px solid #2B6B5E;
+    padding-bottom: 2mm;
+}
+.section-header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.section-logo {
+    height: 32px;
+    margin-right: 4px;
+}
+.section-num {
+    width: 24px;
+    height: 24px;
+    background: #2B6B5E;
+    color: white;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+}
+.section-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #1a1a1a;
+    white-space: nowrap;
+}
+.section-header-right {
+    font-size: 7px;
+    color: #888;
+    text-align: right;
+    line-height: 1.3;
+}
+.section-header-right-icon {
+    display: inline-block;
+    color: #2B6B5E;
+    margin-right: 3px;
+}
+/* Dashboard area */
+.dashboard {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 1mm;
+    height: 75mm;
+}
+.gauge-area {
+    width: 30%;
+    background: #f8fafb;
+    border-radius: 5px;
+    padding: 4px 6px;
+    text-align: center;
+    border: 1px solid #e8eded;
+}
+.gauge-title {
+    font-size: 8px;
+    font-weight: bold;
+    color: #333;
+    text-align: left;
+    margin-bottom: 1px;
+}
+.gauge-svg {
+    width: 85px;
+    height: 55px;
+    margin: 0 auto;
+}
+.gauge-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2B6B5E;
+}
+.gauge-max {
+    font-size: 10px;
+    color: #999;
+}
+.gauge-label {
+    display: inline-block;
+    padding: 1.5px 6px;
+    border-radius: 6px;
+    font-size: 8px;
+    font-weight: bold;
+    margin-top: 2px;
+}
+.label-low { background: #FFF3E0; color: #E8833A; border: 1px solid #E8833A; }
+.label-normal { background: #E8F5E9; color: #4CAF50; border: 1px solid #4CAF50; }
+.label-high { background: #FFF3E0; color: #E8833A; border: 1px solid #E8833A; }
+.label-danger { background: #FFEBEE; color: #E53935; border: 1px solid #E53935; }
+.gauge-desc {
+    font-size: 6px;
+    color: #888;
+    margin-top: 2px;
+    line-height: 1.1;
+}
+.cards-right {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 2px;
+}
+.mini-card {
+    background: #f8fafb;
+    border-radius: 4px;
+    padding: 3px 4px;
+    text-align: center;
+    border: 1px solid #e8eded;
+    height: calc(50% - 1px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.mini-card-title {
+    font-size: 7px;
+    color: #555;
+    margin-bottom: 1px;
+    font-weight: bold;
+}
+.mini-card-value {
+    font-size: 14px;
+    font-weight: bold;
+    color: #2B6B5E;
+}
+.mini-card-unit {
+    font-size: 5px;
+    color: #888;
+    transform: scale(0.85);
+    transform-origin: center;
+    white-space: nowrap;
+}
+.mini-card-sub {
+    font-size: 6px;
+    color: #888;
+    margin-top: 0px;
+}
+/* Table */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1mm 0;
+    font-size: 7.5px;
+}
+.data-table thead th {
+    background: #2B6B5E;
+    color: white;
+    padding: 4px 5px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 8px;
+}
+.data-table thead th:first-child {
+    border-radius: 2px 0 0 0;
+}
+.data-table thead th:last-child {
+    border-radius: 0 2px 0 0;
+    text-align: center;
+}
+.data-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+}
+.data-table tbody tr:nth-child(even) {
+    background: #fafcfb;
+}
+.data-table tbody td {
+    padding: 3px 5px;
+    vertical-align: middle;
+}
+.data-table tbody td:nth-child(1) {
+    font-weight: 500;
+}
+.data-table tbody td:nth-child(2) {
+    font-weight: bold;
+    color: #2B6B5E;
+}
+.data-table tbody td:last-child {
+    text-align: center;
+}
+.status-tag {
+    display: inline-block;
+    padding: 1.5px 6px;
+    border-radius: 6px;
+    font-size: 7px;
+    font-weight: bold;
+}
+.tag-normal { background: #E8F5E9; color: #4CAF50; }
+.tag-low { background: #FFF3E0; color: #E8833A; }
+.tag-high { background: #FFF3E0; color: #E8833A; }
+.tag-danger { background: #FFEBEE; color: #E53935; }
+/* Bar chart */
+.bar-section {
+    margin-top: 1mm;
+}
+.bar-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1mm;
+}
+.bar-section-title {
+    font-size: 9px;
+    font-weight: bold;
+    color: #333;
+}
+.bar-section-unit {
+    font-size: 6px;
+    color: #888;
+}
+.bar-chart {
+    position: relative;
+    padding-bottom: 5px;
+}
+.bar-item {
+    display: flex;
+    align-items: center;
+    margin: 2px 0;
+    height: 13px;
+}
+.bar-label {
+    width: 45px;
+    font-size: 7px;
+    font-weight: bold;
+    text-align: right;
+    padding-right: 4px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+.bar-track {
+    flex: 1;
+    height: 11px;
+    background: #f0f4f2;
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+}
+.bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2B6B5E, #3A9D7C);
+    border-radius: 3px;
+}
+.bar-fill-genus {
+    height: 100%;
+    background: linear-gradient(90deg, #3A9D7C, #4CAF50);
+    border-radius: 3px;
+}
+.bar-value {
+    width: 35px;
+    font-size: 7px;
+    font-weight: bold;
+    color: #2B6B5E;
+    text-align: right;
+    padding-left: 5px;
+    flex-shrink: 0;
+}
+.bar-axis {
+    display: flex;
+    margin-left: 55px;
+    margin-right: 40px;
+    justify-content: space-between;
+    font-size: 6px;
+    color: #aaa;
+    margin-top: 2px;
+    padding-left: 6px;
+}
+.section-divider {
+    height: 1px;
+    background: #e8eded;
+    margin: 2mm 0;
+}
+</style>
+</head>
+<body>
+<div class="page">
+    <div class="section-header">
+        <div class="section-header-left">
+            <img src="file:///D:/report-new/gut_report_generator_v21_final(1)/gut_report_generator/templates/logo-w.png" alt="logo" class="section-logo"/>
+            <div class="section-title">肠道健康核心指数</div>
+        </div>
+        <div class="section-header-right">
+            <span class="section-header-right-icon">⚕</span> 肠道微生态检测报告<br>GUT MICROBIOME ANALYSIS REPORT
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="gauge-area">
+            <div class="gauge-title">GMHI评分 ⓘ</div>
+            <svg class="gauge-svg" viewBox="0 0 200 125">
+                <path d="M 20 105 A 80 80 0 0 1 180 105" fill="none" stroke="#e8e8e8" stroke-width="10" stroke-linecap="round"/>
+                <path d="M 20 105 A 80 80 0 0 1 121.1 27.8" fill="none" stroke="#E8833A" stroke-width="10" stroke-linecap="round"/>
+                <polygon points="117.2,42.3 92.3,102.9 111.9,91.7" fill="#333"/>
+                <text x="12" y="115" font-size="7" fill="#888" text-anchor="middle">0</text>
+                <text x="40" y="50" font-size="7" fill="#888" text-anchor="middle">25</text>
+                <text x="100" y="25" font-size="7" fill="#888" text-anchor="middle">50</text>
+                <text x="160" y="50" font-size="7" fill="#888" text-anchor="middle">75</text>
+                <text x="188" y="115" font-size="7" fill="#888" text-anchor="middle">100</text>
+            </svg>
+            <div>
+                <span class="gauge-value">58.5</span>
+                <span class="gauge-max">/100</span>
+            </div>
+            <div class="gauge-label label-low">偏低</div>
+            <div class="gauge-desc">肠道微生态平衡度一般，建议改善生活方式并关注肠道健康。</div>
+        </div>
+        <div class="cards-right">
+            <div class="mini-card">
+                <div class="mini-card-title">菌群多样性 ⓘ</div>
+                <div class="mini-card-value">2.68</div>
+                <div class="mini-card-unit">Shannon指数</div>
+                <div class="gauge-label label-low">偏低</div>
+            </div>
+            <div class="mini-card">
+                <div class="mini-card-title">肠道年龄 ⓘ</div>
+                <div class="mini-card-value">42<span style="font-size:8px">岁</span></div>
+                <div class="mini-card-sub">实际年龄：30岁</div>
+                <div class="gauge-label label-high">偏大 12岁</div>
+            </div>
+            <div class="mini-card">
+                <div class="mini-card-title">肠型 ⓘ</div>
+                <div class="mini-card-value" style="font-size:12px">B 型</div>
+                <div class="mini-card-sub">拟杆菌型</div>
+                <div class="gauge-label label-normal">偏高理想型</div>
+            </div>
+            <div class="mini-card">
+                <div class="mini-card-title">B/E比值 ⓘ</div>
+                <div class="mini-card-value">1.17</div>
+                <div class="mini-card-sub">参考：0.3~0.8</div>
+                <div class="gauge-label label-high">偏高</div>
+            </div>
+        </div>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>指标</th>
+                <th>结果</th>
+                <th>说明</th>
+                <th>状态</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+            <td>GMHI评分</td>
+            <td>58.5</td>
+            <td style="font-size:9px;color:#666">肠道健康指数</td>
+            <td><span class="status-tag tag-low">注意</span></td>
+        </tr>
+<tr>
+            <td>菌群多样性</td>
+            <td>2.68</td>
+            <td style="font-size:9px;color:#666">菌群丰富度</td>
+            <td><span class="status-tag tag-low">注意</span></td>
+        </tr>
+<tr>
+            <td>肠型</td>
+            <td>B 型</td>
+            <td style="font-size:9px;color:#666">拟杆菌型</td>
+            <td><span class="status-tag tag-low">注意</span></td>
+        </tr>
+
+        </tbody>
+    </table>
+
+    <div class="bar-section">
+        <div class="bar-section-header">
+            <div class="bar-section-title">肠道菌群门级水平分布 ⓘ</div>
+            <div class="bar-section-unit">相对丰度（%）</div>
+        </div>
+        <div class="bar-chart">
+            <div class="bar-item">
+            <div class="bar-label">厚壁菌门</div>
+            <div class="bar-track"><div class="bar-fill" style="width:78.22%"></div></div>
+            <div class="bar-value">39.11%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">拟杆菌门</div>
+            <div class="bar-track"><div class="bar-fill" style="width:73.6%"></div></div>
+            <div class="bar-value">36.8%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">变形菌门</div>
+            <div class="bar-track"><div class="bar-fill" style="width:7.780000000000001%"></div></div>
+            <div class="bar-value">3.89%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">放线菌门</div>
+            <div class="bar-track"><div class="bar-fill" style="width:4.16%"></div></div>
+            <div class="bar-value">2.08%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">梭杆菌门</div>
+            <div class="bar-track"><div class="bar-fill" style="width:0.9399999999999998%"></div></div>
+            <div class="bar-value">0.47%</div>
+        </div>
+
+            <div class="bar-axis">
+                <span>0</span>
+                <span>10</span>
+                <span>20</span>
+                <span>30</span>
+                <span>40</span>
+                <span>50</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <div class="bar-section">
+        <div class="bar-section-header">
+            <div class="bar-section-title">肠道菌群属级水平分布 ⓘ</div>
+            <div class="bar-section-unit">相对丰度（%）</div>
+        </div>
+        <div class="bar-chart">
+            <div class="bar-item">
+            <div class="bar-label">普雷沃菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:89.66666666666666%"></div></div>
+            <div class="bar-value">26.90%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">拟杆菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:34.03333333333334%"></div></div>
+            <div class="bar-value">10.21%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">粪杆菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:28.53333333333333%"></div></div>
+            <div class="bar-value">8.56%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">双歧杆菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:21.066666666666666%"></div></div>
+            <div class="bar-value">6.32%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">罗斯氏菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:19.633333333333333%"></div></div>
+            <div class="bar-value">5.89%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">瘤胃球菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:15.5%"></div></div>
+            <div class="bar-value">4.65%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">真杆菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:10.7%"></div></div>
+            <div class="bar-value">3.21%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">梭菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:9.566666666666666%"></div></div>
+            <div class="bar-value">2.87%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">阿克曼菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:7.166666666666667%"></div></div>
+            <div class="bar-value">2.15%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">链球菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:6.3%"></div></div>
+            <div class="bar-value">1.89%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">韦荣球菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:5.2%"></div></div>
+            <div class="bar-value">1.56%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">乳杆菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:4.466666666666667%"></div></div>
+            <div class="bar-value">1.34%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">肠球菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:3.733333333333334%"></div></div>
+            <div class="bar-value">1.12%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">大肠杆菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:3.266666666666666%"></div></div>
+            <div class="bar-value">0.98%</div>
+        </div>
+<div class="bar-item">
+            <div class="bar-label">克雷伯菌属</div>
+            <div class="bar-track"><div class="bar-fill-genus" style="width:2.533333333333333%"></div></div>
+            <div class="bar-value">0.76%</div>
+        </div>
+
+            <div class="bar-axis">
+                <span>0</span>
+                <span>10</span>
+                <span>20</span>
+                <span>30</span>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

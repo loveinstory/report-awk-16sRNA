@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+@page { size: A4; margin: 0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+    width: 210mm;
+    min-height: 297mm;
+    color: #333;
+}
+.page {
+    width: 210mm;
+    height: 297mm;
+    padding: 4mm 5mm;
+    page-break-after: always;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2mm;
+    border-bottom: 2px solid #2B6B5E;
+    padding-bottom: 2mm;
+}
+.section-header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.section-logo {
+    height: 32px;
+    margin-right: 4px;
+}
+.section-num {
+    width: 24px;
+    height: 24px;
+    background: #2B6B5E;
+    color: white;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+}
+.section-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #1a1a1a;
+    white-space: nowrap;
+}
+.section-header-right {
+    font-size: 7px;
+    color: #888;
+    text-align: right;
+    line-height: 1.3;
+}
+.section-header-right-icon {
+    display: inline-block;
+    color: #2B6B5E;
+    margin-right: 3px;
+}
+/* Donut chart area */
+.donut-section {
+    text-align: center;
+    margin: 2mm 0;
+}
+.donut-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 2mm;
+}
+.donut-container {
+    position: relative;
+    width: 180mm;
+    height: 78mm;
+    margin: 0 auto;
+}
+.donut-center-text {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 10;
+}
+.donut-center-icon {
+    font-size: 14px;
+    color: #2B6B5E;
+    margin-bottom: 2px;
+}
+.donut-center-label {
+    font-size: 9px;
+    color: #888;
+}
+.donut-center-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2B6B5E;
+}
+.genus-label {
+    position: absolute;
+    font-size: 9px;
+}
+.genus-rank {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 18px;
+    font-size: 9px;
+    font-weight: bold;
+    color: white;
+    margin-right: 3px;
+    vertical-align: middle;
+}
+.genus-name { font-weight: bold; font-size: 10.5px; }
+.genus-ratio { font-size: 11px; color: #2B6B5E; font-weight: bold; }
+.donut-note {
+    font-size: 8px;
+    color: #aaa;
+    margin-top: 2mm;
+}
+/* Two column cards */
+.two-col {
+    display: flex;
+    gap: 8px;
+    margin: 3mm 0;
+}
+.col-card {
+    flex: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e8eded;
+}
+.col-card-header {
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: bold;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.col-card-header-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+.col-card-header.green { background: linear-gradient(135deg, #43A047, #66BB6A); }
+.col-card-header.red { background: linear-gradient(135deg, #E53935, #EF5350); }
+.col-card-body {
+    padding: 8px 12px;
+}
+.col-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5px;
+}
+.col-table th {
+    text-align: left;
+    padding: 6px 4px;
+    border-bottom: 1.5px solid #e0e0e0;
+    color: #555;
+    font-size: 9px;
+    font-weight: 600;
+}
+.col-table td {
+    padding: 6px 4px;
+    border-bottom: 1px solid #f0f0f0;
+}
+.col-table .result-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 8.5px;
+    font-weight: bold;
+}
+.result-good { background: #E8F5E9; color: #4CAF50; border: 1px solid #4CAF50; }
+.result-fair { background: #FFF3E0; color: #E8833A; border: 1px solid #E8833A; }
+.result-normal { background: #E8F5E9; color: #4CAF50; border: 1px solid #4CAF50; }
+.col-card-footer {
+    padding: 8px 14px;
+    font-size: 9px;
+    color: #555;
+    background: #f8fafb;
+    border-top: 1px solid #e8e8e8;
+    line-height: 1.5;
+}
+.col-card-footer-icon {
+    color: #2B6B5E;
+    margin-right: 4px;
+}
+/* BE ratio section */
+.be-section {
+    margin-top: 3mm;
+    padding: 12px 14px;
+    border: 1.5px solid #e8eded;
+    border-radius: 10px;
+}
+.be-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #2B6B5E;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.be-title-icon {
+    font-size: 16px;
+}
+.be-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+.be-value-area {
+    text-align: center;
+    min-width: 90px;
+}
+.be-value-label {
+    font-size: 9px;
+    color: #666;
+    margin-bottom: 3px;
+}
+.be-value-num {
+    font-size: 32px;
+    font-weight: bold;
+    color: #E53935;
+}
+.be-value-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: bold;
+    background: #FFEBEE;
+    color: #E53935;
+    border: 1px solid #E53935;
+    margin-top: 3px;
+}
+.be-scale {
+    flex: 1;
+}
+.be-desc {
+    font-size: 9px;
+    color: #555;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+.be-scale-bar {
+    height: 16px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #E53935 0%, #FF5722 15%, #FF9800 30%, #FFC107 45%, #CDDC39 60%, #8BC34A 75%, #4CAF50 90%, #2E7D32 100%);
+    position: relative;
+    margin: 12px 0 6px 0;
+}
+.be-scale-marker {
+    position: absolute;
+    top: -5px;
+    width: 3px;
+    height: 26px;
+    background: #222;
+    border-radius: 1px;
+}
+.be-scale-value {
+    position: absolute;
+    top: -20px;
+    font-size: 9px;
+    font-weight: bold;
+    color: #333;
+    background: white;
+    padding: 2px 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+.be-scale-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 8px;
+    color: #888;
+    line-height: 1.3;
+}
+.be-advice {
+    margin-top: 8px;
+    padding: 9px 14px;
+    background: #FFF8E1;
+    border-radius: 8px;
+    border-left: 4px solid #FF9800;
+    font-size: 9.5px;
+    color: #555;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+.be-advice-icon {
+    color: #FF9800;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.be-advice-title {
+    font-weight: bold;
+    color: #E8833A;
+}
+.footnote {
+    margin-top: 3mm;
+    font-size: 8px;
+    color: #aaa;
+}
+</style>
+</head>
+<body>
+<div class="page">
+    <div class="section-header">
+        <div class="section-header-left">
+            <img src="file:///D:/report-new/gut_report_generator_v21_final(1)/gut_report_generator/templates/logo-w.png" alt="logo" class="section-logo"/>
+            <div class="section-title">肠道菌群精细组成 & 有益/有害菌分析</div>
+        </div>
+        <div class="section-header-right">
+            <span class="section-header-right-icon">⚕</span> 肠道微生态检测报告<br>GUT MICROBIOME ANALYSIS REPORT
+        </div>
+    </div>
+
+    <div class="donut-section">
+        <div class="donut-title">Top 10 菌属相对丰度分布</div>
+        <div class="donut-container">
+            <svg viewBox="0 0 200 200" width="180" height="180" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)"><path d="M 100.0 10.0 A 90 90 0 0 1 176.0 148.3 L 146.4 129.5 A 55 55 0 0 0 100.0 45.0 Z" fill="#1a5c4b" stroke="white" stroke-width="1"/><path d="M 176.0 148.3 A 90 90 0 0 1 95.2 189.9 L 97.1 154.9 A 55 55 0 0 0 146.4 129.5 Z" fill="#2B6B5E" stroke="white" stroke-width="1"/><path d="M 95.2 189.9 A 90 90 0 0 1 31.6 158.5 L 58.2 135.8 A 55 55 0 0 0 97.1 154.9 Z" fill="#3A9D7C" stroke="white" stroke-width="1"/><path d="M 31.6 158.5 A 90 90 0 0 1 10.0 98.2 L 45.0 98.9 A 55 55 0 0 0 58.2 135.8 Z" fill="#4CAF50" stroke="white" stroke-width="1"/><path d="M 10.0 98.2 A 90 90 0 0 1 19.4 60.0 L 50.7 75.6 A 55 55 0 0 0 45.0 98.9 Z" fill="#66BB6A" stroke="white" stroke-width="1"/><path d="M 19.4 60.0 A 90 90 0 0 1 36.0 36.7 L 60.9 61.3 A 55 55 0 0 0 50.7 75.6 Z" fill="#81C784" stroke="white" stroke-width="1"/><path d="M 36.0 36.7 A 90 90 0 0 1 54.6 22.3 L 72.2 52.5 A 55 55 0 0 0 60.9 61.3 Z" fill="#A5D6A7" stroke="white" stroke-width="1"/><path d="M 54.6 22.3 A 90 90 0 0 1 69.9 15.2 L 81.6 48.2 A 55 55 0 0 0 72.2 52.5 Z" fill="#B2DFDB" stroke="white" stroke-width="1"/><path d="M 69.9 15.2 A 90 90 0 0 1 85.3 11.2 L 91.0 45.7 A 55 55 0 0 0 81.6 48.2 Z" fill="#C8E6C9" stroke="white" stroke-width="1"/><path d="M 85.3 11.2 A 90 90 0 0 1 100.0 10.0 L 100.0 45.0 A 55 55 0 0 0 91.0 45.7 Z" fill="#DCEDC8" stroke="white" stroke-width="1"/></svg><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;z-index:10">
+        <div style="font-size:8px;color:#888">Top 10 总相对丰度</div>
+        <div style="font-size:18px;font-weight:bold;color:#2B6B5E">79.10%</div>
+    </div><div style="position:absolute;right:5px;top:5mm;text-align:left">
+                <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#1a5c4b;color:white;text-align:center;line-height:16px;font-size:8px;font-weight:bold;vertical-align:middle">1</span>
+                <span style="font-weight:bold;font-size:10px">普雷沃菌属 9 型</span><br>
+                <span style="font-size:10px;color:#2B6B5E;font-weight:bold;margin-left:20px">26.90%</span>
+            </div><div style="position:absolute;right:5px;top:20mm;text-align:left">
+                <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#2B6B5E;color:white;text-align:center;line-height:16px;font-size:8px;font-weight:bold;vertical-align:middle">2</span>
+                <span style="font-weight:bold;font-size:10px">梭杆菌属</span><br>
+                <span style="font-size:10px;color:#2B6B5E;font-weight:bold;margin-left:20px">13.32%</span>
+            </div><div style="position:absolute;right:5px;top:35mm;text-align:left">
+                <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#3A9D7C;color:white;text-align:center;line-height:16px;font-size:8px;font-weight:bold;vertical-align:middle">3</span>
+                <span style="font-weight:bold;font-size:10px">毛梭菌属</span><br>
+                <span style="font-size:10px;color:#2B6B5E;font-weight:bold;margin-left:20px">10.19%</span>
+            </div><div style="position:absolute;right:5px;top:50mm;text-align:left">
+                <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;text-align:center;line-height:16px;font-size:8px;font-weight:bold;vertical-align:middle">4</span>
+                <span style="font-weight:bold;font-size:10px">拟杆菌属</span><br>
+                <span style="font-size:10px;color:#2B6B5E;font-weight:bold;margin-left:20px">9.16%</span>
+            </div><div style="position:absolute;right:5px;top:65mm;text-align:left">
+                <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#66BB6A;color:white;text-align:center;line-height:16px;font-size:8px;font-weight:bold;vertical-align:middle">5</span>
+                <span style="font-weight:bold;font-size:10px">埃希氏菌-志贺氏菌</span><br>
+                <span style="font-size:10px;color:#2B6B5E;font-weight:bold;margin-left:20px">5.55%</span>
+            </div><div style="position:absolute;left:5px;top:5mm;text-align:right">
+                <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#81C784;color:white;text-align:center;line-height:16px;font-size:8px;font-weight:bold;vertical-align:middle">6</span>
+                <span style="font-weight:bold;font-size:10px">巨单胞菌属</span><br>
+                <span style="font-size:10px;color:#2B6B5E;font-weight:bold;margin-left:20px">4.02%</span>
+            </div><div style="position:absolute;left:5px;top:20mm;text-align:right">
+                <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#A5D6A7;color:white;text-align:center;line-height:16px;font-size:8px;font-weight:bold;vertical-align:middle">7</span>
+                <span style="font-weight:bold;font-size:10px">萨特菌属</span><br>
+                <span style="font-size:10px;color:#2B6B5E;font-weight:bold;margin-left:20px">3.30%</span>
+            </div><div style="position:absolute;left:5px;top:35mm;text-align:right">
+                <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#B2DFDB;color:white;text-align:center;line-height:16px;font-size:8px;font-weight:bold;vertical-align:middle">8</span>
+                <span style="font-weight:bold;font-size:10px">粪杆菌属</span><br>
+                <span style="font-size:10px;color:#2B6B5E;font-weight:bold;margin-left:20px">2.36%</span>
+            </div><div style="position:absolute;left:5px;top:50mm;text-align:right">
+                <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#C8E6C9;color:white;text-align:center;line-height:16px;font-size:8px;font-weight:bold;vertical-align:middle">9</span>
+                <span style="font-weight:bold;font-size:10px">普雷沃菌属</span><br>
+                <span style="font-size:10px;color:#2B6B5E;font-weight:bold;margin-left:20px">2.24%</span>
+            </div><div style="position:absolute;left:5px;top:65mm;text-align:right">
+                <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#DCEDC8;color:white;text-align:center;line-height:16px;font-size:8px;font-weight:bold;vertical-align:middle">10</span>
+                <span style="font-weight:bold;font-size:10px">严 格梭菌1型</span><br>
+                <span style="font-size:10px;color:#2B6B5E;font-weight:bold;margin-left:20px">2.06%</span>
+            </div>
+        </div>
+        <div class="donut-note">注：相对丰度指该菌属在所有检测菌群中的相对百分比</div>
+    </div>
+
+    <div class="two-col">
+        <div class="col-card">
+            <div class="col-card-header green"><span class="col-card-header-icon">⊕</span> 有益菌检测</div>
+            <div class="col-card-body">
+                <table class="col-table">
+                    <thead>
+                        <tr><th>菌属名称</th><th>相对丰度(%)</th><th>水平评估</th><th>结果判定</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+            <td class="name-cell">双歧杆菌</td>
+            <td class="ratio-cell">6.32%</td>
+            <td class="level-cell">高</td>
+            <td class="tag-cell"><span class="result-tag result-good">良好</span></td>
+        </tr><tr>
+            <td class="name-cell">乳杆菌</td>
+            <td class="ratio-cell">2.34%</td>
+            <td class="level-cell">中</td>
+            <td class="tag-cell"><span class="result-tag result-fair">中等</span></td>
+        </tr><tr>
+            <td class="name-cell">粪杆菌</td>
+            <td class="ratio-cell">8.56%</td>
+            <td class="level-cell">高</td>
+            <td class="tag-cell"><span class="result-tag result-good">良好</span></td>
+        </tr><tr>
+            <td class="name-cell">罗斯氏菌</td>
+            <td class="ratio-cell">5.89%</td>
+            <td class="level-cell">高</td>
+            <td class="tag-cell"><span class="result-tag result-good">良好</span></td>
+        </tr><tr>
+            <td class="name-cell">阿克曼菌</td>
+            <td class="ratio-cell">1.98%</td>
+            <td class="level-cell">中</td>
+            <td class="tag-cell"><span class="result-tag result-fair">中等</span></td>
+        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-card-footer"><span class="col-card-footer-icon">ⓘ</span> 有益菌有助于维持肠道微生态平衡，增强屏障功能，促进营养吸收，提升免疫力。</div>
+        </div>
+        <div class="col-card">
+            <div class="col-card-header red"><span class="col-card-header-icon">⊗</span> 有害菌/致病菌检测</div>
+            <div class="col-card-body">
+                <table class="col-table">
+                    <thead>
+                        <tr><th>菌属名称</th><th>检测结果</th><th>结果判定</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+            <td class="name-cell">梭杆菌</td>
+            <td class="ratio-cell">1.20%</td>
+            <td class="level-cell">中</td>
+            <td class="tag-cell"><span class="result-tag result-fair">中等</span></td>
+        </tr><tr>
+            <td class="name-cell">肠球菌</td>
+            <td class="ratio-cell">0.80%</td>
+            <td class="level-cell">低</td>
+            <td class="tag-cell"><span class="result-tag result-good">良好</span></td>
+        </tr><tr>
+            <td class="name-cell">大肠杆菌</td>
+            <td class="ratio-cell">0.50%</td>
+            <td class="level-cell">低</td>
+            <td class="tag-cell"><span class="result-tag result-good">良好</span></td>
+        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-card-footer"><span class="col-card-footer-icon">ⓘ</span> 当前有害菌水平整体较低，无需过度关注。</div>
+        </div>
+    </div>
+
+    <div class="be-section">
+        <div class="be-title"><span class="be-title-icon">⚖</span> B/E 比值（双歧杆菌属/大肠杆菌属）</div>
+        <div class="be-content">
+            <div class="be-value-area">
+                <div class="be-value-label">您的 B/E 比值</div>
+                <div class="be-value-num">0.000107</div>
+                <div class="be-value-status">重度受损</div>
+            </div>
+            <div class="be-scale">
+                <div class="be-desc">B/E 比值反映肠道健康平衡状态，数值越接近1.0 说明肠道菌群平衡越好。</div>
+                <div class="be-scale-bar">
+                    <div class="be-scale-marker" style="left: 5%;">
+                        <div class="be-scale-value">0.000107</div>
+                    </div>
+                </div>
+                <div class="be-scale-labels">
+                    <span>0</span>
+                    <span>0.25<br>极低（失衡）</span>
+                    <span>0.50<br>偏低</span>
+                    <span>0.75<br>中等</span>
+                    <span>良好</span>
+                    <span>1.0<br>优秀</span>
+                </div>
+            </div>
+        </div>
+        <div class="be-advice">
+            <span class="be-advice-icon">⚠</span>
+            <div><span class="be-advice-title">建议：</span>B/E比值重度偏低，肠道菌群平衡严重失调，建议及时咨询医生进行调理。</div>
+        </div>
+    </div>
+
+    <div class="footnote">* 本报告基于高通量测序技术分析，仅供参考，不作为临床诊断依据。</div>
+</div>
+</body>
+</html>

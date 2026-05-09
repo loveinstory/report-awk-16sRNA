@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+@page { size: A4; margin: 0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+    width: 210mm;
+    min-height: 297mm;
+    color: #333;
+}
+.page {
+    width: 210mm;
+    height: 297mm;
+    padding: 4mm 5mm;
+    page-break-after: always;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2mm;
+    border-bottom: 2px solid #2B6B5E;
+    padding-bottom: 2mm;
+}
+.section-header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.section-logo {
+    height: 32px;
+    margin-right: 4px;
+}
+.section-num {
+    width: 24px;
+    height: 24px;
+    background: #2B6B5E;
+    color: white;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+}
+.section-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #1a1a1a;
+    white-space: nowrap;
+}
+.section-header-right {
+    font-size: 7px;
+    color: #888;
+    text-align: right;
+    line-height: 1.3;
+}
+.section-header-right-icon {
+    display: inline-block;
+    color: #2B6B5E;
+    margin-right: 3px;
+}
+    height: 3px;
+    background: #2B6B5E;
+    margin: 3mm 0;
+    border-radius: 2px;
+}
+.section-subtitle {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 4mm;
+}
+/* Knowledge cards */
+.knowledge-card {
+    margin: 3mm 0;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid #e8eded;
+    background: #fafcfb;
+}
+.knowledge-card.card-blue {
+    background: #f5f9ff;
+    border-color: #d0e3f7;
+}
+.knowledge-card.card-yellow {
+    background: #fffdf5;
+    border-color: #f0e8c8;
+}
+.kc-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2B6B5E;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.kc-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #E8833A;
+    color: white;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+}
+.kc-text {
+    font-size: 10.5px;
+    line-height: 1.8;
+    color: #444;
+}
+.kc-highlight {
+    font-weight: bold;
+    color: #2B6B5E;
+}
+.kc-content {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+.kc-left {
+    flex: 1;
+}
+.kc-right {
+    width: 45%;
+    text-align: center;
+}
+.kc-right img {
+    width: 100%;
+    max-height: 160px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+/* Tip box */
+.tip-box {
+    background: #f0f5f3;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 6px;
+    font-size: 9px;
+    color: #555;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+.tip-box-icon {
+    color: #2B6B5E;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+/* Food section */
+.food-section {
+    margin-top: 8px;
+}
+.food-section-desc {
+    font-size: 10.5px;
+    color: #444;
+    margin-bottom: 8px;
+}
+.food-grid {
+    display: flex;
+    gap: 10px;
+}
+.food-col {
+    flex: 1;
+    border-radius: 10px;
+    padding: 10px;
+}
+.food-col.good { background: #f0faf5; border: 1px solid #c8e6d8; }
+.food-col.bad { background: #fff5f5; border: 1px solid #f0d0d0; }
+.food-col-title {
+    font-size: 10.5px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed #ccc;
+}
+.food-col-title.good-title { color: #4CAF50; }
+.food-col-title.bad-title { color: #E53935; }
+.food-col img {
+    width: 100%;
+    max-height: 90px;
+    object-fit: contain;
+    border-radius: 6px;
+}
+.food-labels {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 6px;
+    font-size: 9px;
+    color: #555;
+    text-align: center;
+}
+.food-label-item {
+    width: 24%;
+    text-align: center;
+}
+.food-label-name {
+    font-weight: bold;
+    color: #333;
+    font-size: 9.5px;
+}
+.food-label-desc {
+    font-size: 8px;
+    color: #888;
+    line-height: 1.3;
+    margin-top: 2px;
+}
+/* Medical disclaimer */
+.disclaimer {
+    margin-top: 4mm;
+    padding: 12px 16px;
+    background: #f8fafb;
+    border-radius: 10px;
+    border: 1px solid #e8eded;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+.disclaimer-icon {
+    width: 32px;
+    height: 32px;
+    background: #2B6B5E;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+.disclaimer-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #2B6B5E;
+    margin-bottom: 5px;
+}
+.disclaimer-text {
+    font-size: 9.5px;
+    line-height: 1.8;
+    color: #555;
+}
+</style>
+</head>
+<body>
+<div class="page">
+    <div class="section-header">
+        <div class="section-header-left">
+            <img src="{{logo_w_image}}" alt="logo" class="section-logo"/>
+            <div class="section-title">科普前沿（一看就懂）</div>
+        </div>
+        <div class="section-header-right">
+            <span class="section-header-right-icon">⚕</span> 肠道微生态检测报告<br>GUT MICROBIOME ANALYSIS REPORT
+        </div>
+    </div>
+    <div class="section-subtitle">了解肠道微生态的关键知识，助力科学养护肠道健康。</div>
+
+    <div class="knowledge-card">
+        <div class="kc-title"><span class="kc-num">1</span> 肠龄是什么？</div>
+        <div class="kc-content">
+            <div class="kc-left">
+                <div class="kc-text">
+                    肠龄是指肠道状态的"年龄"，反映肠道微生态、屏障功能、代谢能力等的综合表现。<br><br>
+                    肠龄可能比实际年龄年轻，也可能更"衰老"。<br><br>
+                    <span class="kc-highlight">肠龄越年轻，肠道越健康！</span>
+                </div>
+            </div>
+            <div class="kc-right">
+                <img src="{{gut_age_image}}" alt="肠龄说明"/>
+            </div>
+        </div>
+    </div>
+
+    <div class="knowledge-card card-blue">
+        <div class="kc-title"><span class="kc-num">2</span> B/E比值是什么？</div>
+        <div class="kc-content">
+            <div class="kc-left">
+                <div class="kc-text">
+                    B/E比值是指肠道内"有益菌(Beneficial)"与"有害菌(Existential)"的相对比例，是评估肠道微生态平衡的重要指标。<br><br>
+                    比值越高，肠道微生态越平衡，健康风险越低。
+                </div>
+                <div class="tip-box">
+                    <span class="tip-box-icon">💡</span>
+                    <div><strong>形象比喻：</strong>肠道就像一个天平，有益菌和有害菌的平衡决定了肠道的健康状态。</div>
+                </div>
+            </div>
+            <div class="kc-right">
+                <img src="{{balance_image}}" alt="天平示意"/>
+            </div>
+        </div>
+    </div>
+
+    <div class="knowledge-card card-yellow">
+        <div class="kc-title"><span class="kc-num">3</span> 怎么吃能补有益菌？</div>
+        <div class="food-section">
+            <div class="food-section-desc">合理饮食是补充有益菌、维持肠道健康的关键。</div>
+            <div class="food-grid">
+                <div class="food-col good">
+                    <div class="food-col-title good-title">✓ 推荐多吃（有益菌的最爱）</div>
+                    <img src="{{food_good_image}}" alt="推荐食物"/>
+                    <div class="food-labels">
+                        <div class="food-label-item"><div class="food-label-name">酸奶</div><div class="food-label-desc">含益生菌，有助于调节菌群</div></div>
+                        <div class="food-label-item"><div class="food-label-name">全谷物</div><div class="food-label-desc">富含膳食纤维，促进有益菌生长</div></div>
+                        <div class="food-label-item"><div class="food-label-name">蔬菜</div><div class="food-label-desc">膳食纤维丰富，增加菌群多样性</div></div>
+                        <div class="food-label-item"><div class="food-label-name">发酵食物</div><div class="food-label-desc">如泡菜、味噌，含天然益生菌</div></div>
+                    </div>
+                </div>
+                <div class="food-col bad">
+                    <div class="food-col-title bad-title">✗ 尽量少吃（不利于肠道健康）</div>
+                    <img src="{{food_bad_image}}" alt="不推荐食物"/>
+                    <div class="food-labels">
+                        <div class="food-label-item"><div class="food-label-name">高油高脂</div><div class="food-label-desc">易促进有害菌生长</div></div>
+                        <div class="food-label-item"><div class="food-label-name">高糖食物</div><div class="food-label-desc">易导致菌群失衡</div></div>
+                        <div class="food-label-item"><div class="food-label-name">加工肉制品</div><div class="food-label-desc">可能增加肠道炎症风险</div></div>
+                        <div class="food-label-item"><div class="food-label-name">酒精</div><div class="food-label-desc">破坏肠道屏障，影响菌群平衡</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="disclaimer">
+        <div class="disclaimer-icon">+</div>
+        <div>
+            <div class="disclaimer-title">医学声明</div>
+            <div class="disclaimer-text">
+                • 本内容仅供科普参考，不能替代医生的专业诊断与治疗建议。<br>
+                • 检测结果受个体差异、饮食、生活方式等多种因素影响。<br>
+                • 如您有任何健康问题或疾病症状，请及时咨询专业医生。<br>
+                • 请勿根据本内容自行诊断或调整治疗方案。
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
