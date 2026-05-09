@@ -536,17 +536,20 @@ def build_page3(data):
     donut_svg += '</svg>'
 
     # 图例（左右分布）
-    donut_legend = ""
+    donut_legend = '<div class="donut-legend">'
     for i, g in enumerate(genus):
         name = g.get("name", "")
         ratio = g.get("ratio", "")
         color = DONUT_COLORS[i % len(DONUT_COLORS)]
-
+        
+        # 计算垂直位置（居中分布）
+        offset = (i % 5) * 18  # 增加间距避免重叠
+        center_offset = offset - 36  # 居中
+        
         # 左侧放6-10，右侧放1-5
         if i < 5:
             # 右侧
-            top = 8 + i * 15
-            donut_legend += f'''<div class="genus-item right" style="right:5px;top:{top}mm">
+            donut_legend += f'''<div class="genus-item right" style="top:calc(50% + {center_offset}mm)">
                 <div class="genus-rank" style="background:{color}">{i+1}</div>
                 <div class="genus-info">
                     <span class="genus-name">{name}</span>
@@ -555,14 +558,14 @@ def build_page3(data):
             </div>'''
         else:
             # 左侧
-            top = 8 + (i - 5) * 15
-            donut_legend += f'''<div class="genus-item left" style="left:5px;top:{top}mm">
+            donut_legend += f'''<div class="genus-item left" style="top:calc(50% + {center_offset}mm)">
                 <div class="genus-rank" style="background:{color}">{i+1}</div>
                 <div class="genus-info">
                     <span class="genus-name">{name}</span>
                     <span class="genus-ratio">{ratio}</span>
                 </div>
             </div>'''
+    donut_legend += '</div>'
 
     donut_chart = donut_svg
 
@@ -615,13 +618,14 @@ def build_page3(data):
     # 有害菌表格行（3列）
     harmful_rows = ""
     
-    # 如果没有有害菌数据，使用默认数据
+    # 如果没有有害菌数据，使用默认数据（5行，与有益菌保持一致）
     if not harmful:
         harmful = [
             {"name": "沙门氏菌", "result": "未检出"},
             {"name": "志贺氏菌", "result": "未检出"},
             {"name": "弯曲菌", "result": "未检出"},
             {"name": "幽门螺杆菌", "result": "未检出"},
+            {"name": "产气荚膜梭菌", "result": "未检出"},
         ]
     
     harmful_summary = "有害菌/致病菌未检出，表明肠道致病菌风险较低，肠道环境相对安全。"

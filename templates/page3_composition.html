@@ -80,17 +80,21 @@ body {
 }
 .donut-container {
     position: relative;
-    width: 190mm;
-    height: 80mm;
+    width: 100%;
+    height: 90mm;
     margin: 0 auto;
 }
-.donut-chart {
+.donut-wrapper {
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 100mm;
-    height: 100mm;
+    width: 110mm;
+    height: 110mm;
+}
+.donut-chart {
+    width: 100%;
+    height: 100%;
 }
 .donut-center-text {
     position: absolute;
@@ -100,8 +104,8 @@ body {
     text-align: center;
     z-index: 10;
     background: white;
-    width: 55mm;
-    height: 55mm;
+    width: 50mm;
+    height: 50mm;
     border-radius: 50%;
     display: flex;
     flex-direction: column;
@@ -110,17 +114,17 @@ body {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 .donut-center-icon {
-    font-size: 18px;
+    font-size: 16px;
     color: #2B6B5E;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
 }
 .donut-center-label {
-    font-size: 10px;
+    font-size: 9px;
     color: #666;
     margin-bottom: 2px;
 }
 .donut-center-value {
-    font-size: 19px;
+    font-size: 18px;
     font-weight: bold;
     color: #2B6B5E;
 }
@@ -134,23 +138,27 @@ body {
     position: absolute;
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 10px;
+    gap: 6px;
+    width: 75mm;
 }
 .genus-item.left {
+    right: calc(50% + 60mm);
     flex-direction: row-reverse;
+    text-align: right;
 }
 .genus-item.right {
+    left: calc(50% + 60mm);
     flex-direction: row;
+    text-align: left;
 }
 .genus-rank {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    font-size: 9px;
+    font-size: 8px;
     font-weight: bold;
     color: white;
     flex-shrink: 0;
@@ -158,15 +166,20 @@ body {
 .genus-info {
     display: flex;
     flex-direction: column;
+    max-width: calc(100% - 22px);
 }
 .genus-name {
     font-weight: bold;
     color: #333;
-    font-size: 10px;
+    font-size: 9px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .genus-ratio {
-    font-size: 10px;
-    color: #666;
+    font-size: 9px;
+    color: #2B6B5E;
+    font-weight: bold;
 }
 .donut-note {
     font-size: 8px;
@@ -185,25 +198,29 @@ body {
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    min-height: 100mm;
 }
 .col-card-header {
-    padding: 11px 16px;
-    font-size: 14px;
+    padding: 10px 14px;
+    font-size: 13px;
     font-weight: bold;
     color: white;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    flex-shrink: 0;
 }
 .col-card-header-icon {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: rgba(255,255,255,0.25);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 13px;
 }
 .col-card-header.green { 
     background: linear-gradient(135deg, #1E8E3E 0%, #4CAF50 50%, #66BB6A 100%); 
@@ -212,25 +229,29 @@ body {
     background: linear-gradient(135deg, #C62828 0%, #E53935 50%, #EF5350 100%); 
 }
 .col-card-body {
-    padding: 10px 14px;
+    padding: 8px 12px;
     background: white;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 .col-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 10px;
+    font-size: 9px;
+    flex: 1;
 }
 .col-table th {
     text-align: left;
-    padding: 8px 6px;
+    padding: 6px 4px;
     border-bottom: 2px solid #e0e0e0;
     color: #555;
-    font-size: 9.5px;
+    font-size: 8.5px;
     font-weight: 600;
     background: #fafafa;
 }
 .col-table td {
-    padding: 8px 6px;
+    padding: 7px 4px;
     border-bottom: 1px solid #f0f0f0;
     vertical-align: middle;
 }
@@ -239,9 +260,9 @@ body {
 }
 .col-table .result-tag {
     display: inline-block;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 8.5px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 8px;
     font-weight: bold;
 }
 .result-good { 
@@ -260,12 +281,12 @@ body {
     border: 1px solid #64B5F6; 
 }
 .col-card-footer {
-    padding: 10px 16px;
-    font-size: 9.5px;
+    padding: 9px 14px;
+    font-size: 9px;
     color: #555;
-    background: #f8fafb;
     border-top: 1px solid #e8e8e8;
     line-height: 1.5;
+    flex-shrink: 0;
 }
 .col-card-footer.green {
     background: linear-gradient(135deg, #F1F8E9 0%, #E8F5E9 100%);
@@ -275,76 +296,76 @@ body {
 }
 .col-card-footer-icon {
     color: #2B6B5E;
-    margin-right: 5px;
-    font-size: 12px;
+    margin-right: 4px;
+    font-size: 11px;
 }
 
 /* BE ratio section */
 .be-section {
     margin-top: 3mm;
-    padding: 14px 18px;
+    padding: 12px 16px;
     border: 2px solid #e0e0e0;
-    border-radius: 14px;
+    border-radius: 12px;
     background: white;
 }
 .be-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     color: #2B6B5E;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 .be-title-icon {
-    font-size: 18px;
+    font-size: 16px;
 }
 .be-content {
     display: flex;
     align-items: flex-start;
-    gap: 20px;
+    gap: 16px;
 }
 .be-value-area {
     text-align: center;
-    min-width: 100px;
-    padding: 10px;
+    min-width: 90px;
+    padding: 8px;
     background: #fafafa;
-    border-radius: 10px;
+    border-radius: 8px;
 }
 .be-value-label {
-    font-size: 10px;
+    font-size: 9px;
     color: #666;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
 }
 .be-value-num {
-    font-size: 36px;
+    font-size: 32px;
     font-weight: bold;
     color: #E53935;
     line-height: 1;
 }
 .be-value-status {
     display: inline-block;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 9px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 8.5px;
     font-weight: bold;
     background: #FFEBEE;
     color: #C62828;
     border: 1px solid #EF9A9A;
-    margin-top: 6px;
+    margin-top: 4px;
 }
 .be-scale {
     flex: 1;
 }
 .be-desc {
-    font-size: 10px;
+    font-size: 9px;
     color: #555;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     line-height: 1.4;
 }
 .be-scale-bar {
-    height: 18px;
-    border-radius: 9px;
+    height: 16px;
+    border-radius: 8px;
     background: linear-gradient(90deg, 
         #C62828 0%, #D32F2F 8%, 
         #E64A19 16%, #EF6C00 24%, 
@@ -354,28 +375,28 @@ body {
         #2E7D32 80%, #1B5E20 90%, 
         #1B5E20 100%);
     position: relative;
-    margin: 14px 0 8px 0;
+    margin: 12px 0 6px 0;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
 }
 .be-scale-marker {
     position: absolute;
-    top: -6px;
-    width: 4px;
-    height: 30px;
+    top: -5px;
+    width: 3px;
+    height: 26px;
     background: #333;
     border-radius: 2px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 .be-scale-value {
     position: absolute;
-    top: -24px;
-    font-size: 10px;
+    top: -22px;
+    font-size: 9px;
     font-weight: bold;
     color: #333;
     background: white;
-    padding: 3px 8px;
+    padding: 2px 6px;
     border: 2px solid #2B6B5E;
-    border-radius: 4px;
+    border-radius: 3px;
     transform: translateX(-50%);
     white-space: nowrap;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -383,7 +404,7 @@ body {
 .be-scale-labels {
     display: flex;
     justify-content: space-between;
-    font-size: 9px;
+    font-size: 8px;
     color: #666;
     line-height: 1.4;
 }
@@ -394,21 +415,21 @@ body {
 .be-scale-labels .label-mid { color: #FF9800; }
 .be-scale-labels .label-high { color: #4CAF50; font-weight: bold; }
 .be-advice {
-    margin-top: 10px;
-    padding: 11px 16px;
+    margin-top: 8px;
+    padding: 10px 14px;
     background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
-    border-radius: 10px;
-    border-left: 5px solid #FF9800;
-    font-size: 10px;
+    border-radius: 8px;
+    border-left: 4px solid #FF9800;
+    font-size: 9px;
     color: #555;
-    line-height: 1.6;
+    line-height: 1.5;
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: 6px;
 }
 .be-advice-icon {
     color: #FF9800;
-    font-size: 16px;
+    font-size: 14px;
     flex-shrink: 0;
     margin-top: 1px;
 }
@@ -418,7 +439,7 @@ body {
 }
 .footnote {
     margin-top: 3mm;
-    font-size: 8.5px;
+    font-size: 8px;
     color: #aaa;
     text-align: center;
 }
@@ -439,11 +460,13 @@ body {
     <div class="donut-section">
         <div class="donut-title">Top 10 菌属相对丰度分布</div>
         <div class="donut-container">
-            {{donut_chart}}
-            <div class="donut-center-text">
-                <span class="donut-center-icon">🦠</span>
-                <div class="donut-center-label">Top 10 相对丰度</div>
-                <div class="donut-center-value">{{top10_ratio}}</div>
+            <div class="donut-wrapper">
+                {{donut_chart}}
+                <div class="donut-center-text">
+                    <span class="donut-center-icon">🦠</span>
+                    <div class="donut-center-label">Top 10 相对丰度</div>
+                    <div class="donut-center-value">{{top10_ratio}}</div>
+                </div>
             </div>
             {{donut_legend}}
         </div>
