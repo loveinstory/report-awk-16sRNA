@@ -5,7 +5,19 @@
 import os
 import math
 import re
+import logging
 from weasyprint import HTML
+
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('report_generator.log', encoding='utf-8'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
 
@@ -493,11 +505,17 @@ def build_page3(data):
     # 最多显示10条（环形图只显示Top 10）
     genus = genus[:10]
 
-    # 构建环形图（SVG）
+    # 构建环形图（SVG）- 按照用户提供的图片样式
     total_ratio = sum(float(g.get("ratio", "0").replace("%", "")) for g in genus)
     top10_ratio = f"{total_ratio:.2f}%"
     
-    donut_svg = f'''<svg viewBox="0 0 200 200" width="180" height="180" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)">'''
+    # 使用与图片一致的颜色方案（从深绿到浅绿渐变）
+    CHART_COLORS = [
+        "#00796B", "#00897B", "#009688", "#26A69A", "#4DB6AC",
+        "#80CBC4", "#A7FFEB", "#B2DFDB", "#E0F2F1", "#E8F5F3"
+    ]
+    
+    donut_svg = f'''<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">'''
 
     # 绘制环形图扇区
     start_angle = -90
@@ -507,14 +525,14 @@ def build_page3(data):
         except:
             ratio_val = 0
         sweep = ratio_val / total_ratio * 360 if total_ratio > 0 else 0
-        color = DONUT_COLORS[i % len(DONUT_COLORS)]
+        color = CHART_COLORS[i % len(CHART_COLORS)]
 
         # 计算SVG弧线
         end_angle = start_angle + sweep
         large_arc = 1 if sweep > 180 else 0
 
-        r_outer = 90
-        r_inner = 55
+        r_outer = 85
+        r_inner = 50
         cx, cy = 100, 100
 
         # 外弧起点终点
@@ -529,24 +547,24 @@ def build_page3(data):
         y2_i = cx + r_inner * math.sin(math.radians(start_angle))
 
         path = f"M {x1_o:.1f} {y1_o:.1f} A {r_outer} {r_outer} 0 {large_arc} 1 {x2_o:.1f} {y2_o:.1f} L {x1_i:.1f} {y1_i:.1f} A {r_inner} {r_inner} 0 {large_arc} 0 {x2_i:.1f} {y2_i:.1f} Z"
-        donut_svg += f'<path d="{path}" fill="{color}" stroke="white" stroke-width="1"/>'
+        donut_svg += f'<path d="{path}" fill="{color}" stroke="white" stroke-width="1.5"/>'
 
         start_angle = end_angle
 
     donut_svg += '</svg>'
 
-    # 图例（左右分布）
+    # 图例（左右分布，按照图片样式）
     donut_legend = '<div class="donut-legend">'
     for i, g in enumerate(genus):
         name = g.get("name", "")
         ratio = g.get("ratio", "")
-        color = DONUT_COLORS[i % len(DONUT_COLORS)]
+        color = CHART_COLORS[i % len(CHART_COLORS)]
         
-        # 计算垂直位置（居中分布）
-        offset = (i % 5) * 18  # 增加间距避免重叠
-        center_offset = offset - 36  # 居中
+        # 计算垂直位置（居中分布，间距调整，缩小后更紧凑）
+        offset = (i % 5) * 14
+        center_offset = offset - 28
         
-        # 左侧放6-10，右侧放1-5
+        # 左侧放6-10，右侧放1-5（与图片一致）
         if i < 5:
             # 右侧
             donut_legend += f'''<div class="genus-item right" style="top:calc(50% + {center_offset}mm)">
@@ -569,94 +587,138 @@ def build_page3(data):
 
     donut_chart = donut_svg
 
-    # 有益菌表格行
+    # 有益菌表格行（只显示异常项，最多12行）
     beneficial_rows = ""
+    beneficial_summary = "有益菌检测结果均正常，肠道有益菌群状态良好。"
+    has_abnormal_beneficial = False
     
     # 如果没有有益菌数据，使用默认数据
     if not beneficial:
         beneficial = [
-            {"name": "双歧杆菌", "result": "6.32%"},
-            {"name": "乳杆菌", "result": "2.34%"},
-            {"name": "粪杆菌", "result": "8.56%"},
-            {"name": "罗斯氏菌", "result": "5.89%"},
-            {"name": "阿克曼菌", "result": "1.98%"},
+            {"name": "双歧杆菌属", "result": "0.0006%", "ref_range": "0.0282-15.4602", "evaluation": "偏低"},
+            {"name": "长双歧杆菌", "result": "未检出", "ref_range": "0.0013-11.7723", "evaluation": "未检出"},
+            {"name": "广布乳杆菌属", "result": "未检出", "ref_range": "0-0.0006", "evaluation": "未检出"},
+            {"name": "促生乳杆菌属", "result": "未检出", "ref_range": "0-0.0005", "evaluation": "未检出"},
+            {"name": "联合乳杆菌属", "result": "0.1687%", "ref_range": "0-0.4694", "evaluation": "正常"},
         ]
     
+    abnormal_beneficial = []
     for b in beneficial:
         name = b.get("name", "")
         result = b.get("result", "")
-        # 判断水平
+        ref_range = b.get("ref_range", "")
+        evaluation = b.get("evaluation", "")
+        
+        # 判断是否异常
+        is_abnormal = False
+        tag = ""
+        
         if "低于检测限" in result or "未检出" in result:
-            level = "低"
             tag = '<span class="result-tag result-fair">需关注</span>'
-            ratio_display = "&lt;0.01"
+            is_abnormal = True
+        elif evaluation in ["偏低", "异常", "需关注"]:
+            tag = '<span class="result-tag result-poor">需关注</span>'
+            is_abnormal = True
         else:
             try:
-                val = float(result.replace("%", ""))
-                if val >= 5:
-                    level = "高"
-                    tag = '<span class="result-tag result-good">良好</span>'
-                elif val >= 1:
-                    level = "中"
+                val = float(result.replace("%", "")) if "%" in result else 0
+                if val < 1 and val > 0:
                     tag = '<span class="result-tag result-fair">中等</span>'
+                    is_abnormal = True
+                elif val == 0:
+                    tag = '<span class="result-tag result-fair">需关注</span>'
+                    is_abnormal = True
                 else:
-                    level = "低"
-                    tag = '<span class="result-tag result-poor">需关注</span>'
-                ratio_display = f"{val:.2f}"
+                    tag = '<span class="result-tag result-good">正常</span>'
             except:
-                level = "-"
-                tag = ""
-                ratio_display = result
+                if evaluation:
+                    tag = f'<span class="result-tag result-good">{evaluation}</span>'
         
-        beneficial_rows += f'''<tr>
-            <td class="name-cell">{name}</td>
-            <td class="ratio-cell">{ratio_display}%</td>
-            <td class="level-cell">{level}</td>
-            <td class="tag-cell">{tag}</td>
-        </tr>'''
+        # 记录日志
+        logger.info(f"有益菌异常判断 - {name}: {result} | {ref_range} | {evaluation} | 异常={is_abnormal}")
+        
+        if is_abnormal:
+            abnormal_beneficial.append({
+                "name": name,
+                "result": result,
+                "ref_range": ref_range,
+                "tag": tag
+            })
+            has_abnormal_beneficial = True
     
-    # 有害菌表格行（3列）
+    # 控制最多显示12行
+    abnormal_beneficial = abnormal_beneficial[:12]
+    
+    if has_abnormal_beneficial:
+        beneficial_summary = "部分有益菌水平偏低，建议通过饮食或补充剂进行调理。"
+        for b in abnormal_beneficial:
+            beneficial_rows += f'''<tr>
+                <td>{b["name"]}</td>
+                <td>{b["result"]}</td>
+                <td>{b["ref_range"]}</td>
+                <td>{b["tag"]}</td>
+            </tr>'''
+    else:
+        beneficial_rows = '<tr><td colspan="4" class="no-data-row">未检出异常项</td></tr>'
+    
+    # 有害菌表格行（只显示异常项，4列，最多10行）
     harmful_rows = ""
+    harmful_summary = "有害菌/中性菌未检出异常项，表明肠道环境相对安全。"
+    has_abnormal_harmful = False
     
-    # 如果没有有害菌数据，使用默认数据（5行，与有益菌保持一致）
+    # 如果没有有害菌数据，使用默认数据
     if not harmful:
         harmful = [
-            {"name": "沙门氏菌", "result": "未检出"},
-            {"name": "志贺氏菌", "result": "未检出"},
-            {"name": "弯曲菌", "result": "未检出"},
-            {"name": "幽门螺杆菌", "result": "未检出"},
-            {"name": "产气荚膜梭菌", "result": "未检出"},
+            {"name": "产气荚膜梭菌", "result": "未检出", "ref_range": "0-5.1427", "evaluation": "正常"},
+            {"name": "肉毒梭菌", "result": "未检出", "ref_range": "0-0.0021", "evaluation": "正常"},
+            {"name": "沙门菌属", "result": "未检出", "ref_range": "0-0.0906", "evaluation": "正常"},
+            {"name": "大肠埃希菌", "result": "0.0314%", "ref_range": "0.0010-1.0000", "evaluation": "正常"},
+            {"name": "肺炎克雷伯菌", "result": "0.0492%", "ref_range": "0.0010-3.0000", "evaluation": "正常"},
         ]
     
-    harmful_summary = "有害菌/致病菌未检出，表明肠道致病菌风险较低，肠道环境相对安全。"
-    
+    abnormal_harmful = []
     for h in harmful:
         name = h.get("name", "")
         result = h.get("result", "")
-        # 判断结果
-        if "低于检测限" in result or "未检出" in result:
-            tag = '<span class="result-tag result-normal">正常</span>'
-            result_display = "未检出"
-        else:
-            try:
-                val = float(result.replace("%", ""))
-                if val >= 5:
-                    tag = '<span class="result-tag result-fair">需关注</span>'
-                    harmful_summary = "检测到有害菌水平较高，建议关注并咨询专业医生。"
-                elif val >= 1:
-                    tag = '<span class="result-tag result-fair">中等</span>'
-                else:
-                    tag = '<span class="result-tag result-good">良好</span>'
-                result_display = f"{val:.2f}%"
-            except:
-                tag = ""
-                result_display = result
+        ref_range = h.get("ref_range", "")
+        evaluation = h.get("evaluation", "")
         
-        harmful_rows += f'''<tr>
-            <td>{name}</td>
-            <td>{result_display}</td>
-            <td>{tag}</td>
-        </tr>'''
+        # 判断结果：根据evaluation字段判断
+        is_abnormal = False
+        tag = ""
+        
+        if evaluation in ["偏低", "偏高", "异常"]:
+            tag = '<span class="result-tag result-fair">需关注</span>'
+            is_abnormal = True
+        else:
+            tag = '<span class="result-tag result-good">正常</span>'
+        
+        # 记录日志
+        logger.info(f"有害菌异常判断 - {name}: {result} | {ref_range} | {evaluation} | 异常={is_abnormal}")
+        
+        if is_abnormal:
+            abnormal_harmful.append({
+                "name": name,
+                "result": result,
+                "ref_range": ref_range,
+                "tag": tag
+            })
+            has_abnormal_harmful = True
+    
+    # 控制最多显示10行
+    abnormal_harmful = abnormal_harmful[:10]
+    
+    if has_abnormal_harmful:
+        harmful_summary = "检测到有害菌/中性菌异常项，建议关注并咨询专业医生。"
+        for h in abnormal_harmful:
+            harmful_rows += f'''<tr>
+                <td>{h["name"]}</td>
+                <td>{h["result"]}</td>
+                <td>{h["ref_range"]}</td>
+                <td>{h["tag"]}</td>
+            </tr>'''
+    else:
+        harmful_rows = '<tr><td colspan="4" class="no-data-row">未检出异常项</td></tr>'
     
     # B/E比值（双歧杆菌属/肠杆菌科）
     be_value = be_ratio.get("value", "1.5")
@@ -686,6 +748,7 @@ def build_page3(data):
         "{{donut_legend}}": donut_legend,
         "{{top10_ratio}}": top10_ratio,
         "{{beneficial_rows}}": beneficial_rows,
+        "{{beneficial_summary}}": beneficial_summary,
         "{{harmful_rows}}": harmful_rows,
         "{{harmful_summary}}": harmful_summary,
         "{{be_value}}": str(be_value),

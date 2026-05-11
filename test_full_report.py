@@ -1,5 +1,5 @@
 from pdf_parser import parse_report_pdf
-from report_generator_v2 import build_page1, build_page2, build_page3
+from report_generator_v2 import build_page1, build_page2, build_page3, build_page4, build_page5
 import os
 
 pdf_path = r'C:\Users\Administrator\Desktop\AWK-OCR\功能医学检测报告模板（2026.4.3）\P01\人体肠道菌群检测原始报告.pdf'
@@ -19,6 +19,12 @@ try:
     print('正在生成页面3...')
     page3 = build_page3(data)
     
+    print('正在生成页面4...')
+    page4 = build_page4(data)
+    
+    print('正在生成页面5...')
+    page5 = build_page5(data)
+    
     # 保存测试输出
     output_dir = 'test_output'
     os.makedirs(output_dir, exist_ok=True)
@@ -31,6 +37,12 @@ try:
     
     with open(os.path.join(output_dir, 'page3.html'), 'w', encoding='utf-8') as f:
         f.write(page3)
+    
+    with open(os.path.join(output_dir, 'page4.html'), 'w', encoding='utf-8') as f:
+        f.write(page4)
+    
+    with open(os.path.join(output_dir, 'page5.html'), 'w', encoding='utf-8') as f:
+        f.write(page5)
     
     print('\n=== 解析结果摘要 ===')
     print('基本信息:')

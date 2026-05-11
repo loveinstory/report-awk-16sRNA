@@ -37,18 +37,6 @@ body {
     height: 32px;
     margin-right: 4px;
 }
-.section-num {
-    width: 24px;
-    height: 24px;
-    background: #2B6B5E;
-    color: white;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: bold;
-}
 .section-title {
     font-size: 18px;
     font-weight: bold;
@@ -76,12 +64,12 @@ body {
     font-size: 15px;
     font-weight: bold;
     color: #2B6B5E;
-    margin-bottom: 2mm;
+    margin-bottom: 3mm;
 }
 .donut-container {
     position: relative;
     width: 100%;
-    height: 90mm;
+    height: 75mm;
     margin: 0 auto;
 }
 .donut-wrapper {
@@ -89,8 +77,8 @@ body {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 110mm;
-    height: 110mm;
+    width: 96mm;
+    height: 96mm;
 }
 .donut-chart {
     width: 100%;
@@ -104,27 +92,28 @@ body {
     text-align: center;
     z-index: 10;
     background: white;
-    width: 50mm;
-    height: 50mm;
+    width: 44mm;
+    height: 44mm;
     border-radius: 50%;
     display: flex;
     flex-direction: column;
+    align-items: center;
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 .donut-center-icon {
-    font-size: 16px;
+    font-size: 20px;
     color: #2B6B5E;
     margin-bottom: 2px;
 }
 .donut-center-label {
-    font-size: 9px;
+    font-size: 7px;
     color: #666;
     margin-bottom: 2px;
 }
 .donut-center-value {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: bold;
     color: #2B6B5E;
 }
@@ -138,16 +127,18 @@ body {
     position: absolute;
     display: flex;
     align-items: center;
-    gap: 6px;
-    width: 75mm;
+    gap: 5px;
+    font-size: 8px;
+    max-width: 55mm;
+    white-space: nowrap;
 }
 .genus-item.left {
-    right: calc(50% + 60mm);
+    right: calc(50% + 50mm);
     flex-direction: row-reverse;
     text-align: right;
 }
 .genus-item.right {
-    left: calc(50% + 60mm);
+    left: calc(50% + 50mm);
     flex-direction: row;
     text-align: left;
 }
@@ -155,31 +146,38 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     font-size: 8px;
     font-weight: bold;
     color: white;
     flex-shrink: 0;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .genus-info {
     display: flex;
     flex-direction: column;
-    max-width: calc(100% - 22px);
+    line-height: 1.2;
 }
 .genus-name {
     font-weight: bold;
     color: #333;
-    font-size: 9px;
-    white-space: nowrap;
+    font-size: 8px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .genus-ratio {
-    font-size: 9px;
+    font-size: 8px;
     color: #2B6B5E;
     font-weight: bold;
+}
+.genus-line {
+    position: absolute;
+    height: 2px;
+    background: #ccc;
+    z-index: -1;
 }
 .donut-note {
     font-size: 8px;
@@ -200,7 +198,7 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     display: flex;
     flex-direction: column;
-    min-height: 100mm;
+    min-height: 70mm;
 }
 .col-card-header {
     padding: 10px 14px;
@@ -279,6 +277,16 @@ body {
     background: #E3F2FD; 
     color: #1565C0; 
     border: 1px solid #64B5F6; 
+}
+.result-poor { 
+    background: #FFEBEE; 
+    color: #C62828; 
+    border: 1px solid #EF9A9A; 
+}
+.no-data-row {
+    text-align: center;
+    color: #999;
+    font-style: italic;
 }
 .col-card-footer {
     padding: 9px 14px;
@@ -464,7 +472,7 @@ body {
                 {{donut_chart}}
                 <div class="donut-center-text">
                     <span class="donut-center-icon">🦠</span>
-                    <div class="donut-center-label">Top 10 相对丰度</div>
+                    <div class="donut-center-label">Top 10 总相对丰度</div>
                     <div class="donut-center-value">{{top10_ratio}}</div>
                 </div>
             </div>
@@ -476,12 +484,12 @@ body {
     <div class="two-col">
         <div class="col-card">
             <div class="col-card-header green">
-                <span class="col-card-header-icon">⊕</span> 有益菌检测
+                <span class="col-card-header-icon">⊕</span> 有益菌检测（异常项）
             </div>
             <div class="col-card-body">
                 <table class="col-table">
                     <thead>
-                        <tr><th>菌属名称</th><th>相对丰度(%)</th><th>水平评估</th><th>结果判定</th></tr>
+                        <tr><th>菌属名称</th><th>检测结果(%)</th><th>参考范围(%)</th><th>结果评价</th></tr>
                     </thead>
                     <tbody>
                         {{beneficial_rows}}
@@ -489,17 +497,17 @@ body {
                 </table>
             </div>
             <div class="col-card-footer green">
-                <span class="col-card-footer-icon">💡</span> 有益菌有助于维持肠道微生态平衡，增强屏障功能，促进营养吸收，提升免疫力。
+                <span class="col-card-footer-icon">💡</span> {{beneficial_summary}}
             </div>
         </div>
         <div class="col-card">
             <div class="col-card-header red">
-                <span class="col-card-header-icon">⊗</span> 有害菌/致病菌检测
+                <span class="col-card-header-icon">⊗</span> 有害菌/中性菌检测（异常项）
             </div>
             <div class="col-card-body">
                 <table class="col-table">
                     <thead>
-                        <tr><th>菌属名称</th><th>检测结果</th><th>结果判定</th></tr>
+                        <tr><th>菌属名称</th><th>检测结果(%)</th><th>参考范围(%)</th><th>结果评价</th></tr>
                     </thead>
                     <tbody>
                         {{harmful_rows}}

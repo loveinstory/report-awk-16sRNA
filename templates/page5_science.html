@@ -132,11 +132,25 @@ body {
     width: 45%;
     text-align: center;
 }
-.kc-right img {
+.kc-emoji-box {
     width: 100%;
-    max-height: 160px;
-    object-fit: contain;
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f0f9f5 0%, #e8f5f0 100%);
     border-radius: 8px;
+    border: 2px solid #d0e8df;
+}
+.kc-emoji {
+    font-size: 56px;
+    margin-bottom: 8px;
+}
+.kc-emoji-label {
+    font-size: 10px;
+    color: #555;
+    font-weight: bold;
 }
 /* Tip box */
 .tip-box {
@@ -276,7 +290,10 @@ body {
                 </div>
             </div>
             <div class="kc-right">
-                <img src="{{gut_age_image}}" alt="肠龄说明"/>
+                <div class="kc-emoji-box">
+                    <div class="kc-emoji">🎂</div>
+                    <div class="kc-emoji-label">肠道年龄</div>
+                </div>
             </div>
         </div>
     </div>
@@ -295,7 +312,10 @@ body {
                 </div>
             </div>
             <div class="kc-right">
-                <img src="{{balance_image}}" alt="天平示意"/>
+                <div class="kc-emoji-box">
+                    <div class="kc-emoji">⚖️</div>
+                    <div class="kc-emoji-label">菌群平衡</div>
+                </div>
             </div>
         </div>
     </div>

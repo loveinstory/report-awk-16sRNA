@@ -4,6 +4,19 @@ PDF数据解析模块
 """
 import re
 import pdfplumber
+import logging
+import os
+
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('pdf_parser.log', encoding='utf-8'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 
 def parse_report_pdf(pdf_path: str) -> dict:
@@ -502,92 +515,402 @@ def parse_genus_distribution(text: str) -> list:
     return distribution
 
 
+def calculate_evaluation(result: str, ref_range: str, is_beneficial: bool = True) -> str:
+    """根据检测结果和参考范围计算评价
+    is_beneficial: True表示有益菌，False表示有害菌/中性菌
+    """
+    try:
+        # 解析检测结果
+        if result == "ND" or result == "未检出" or result == "低于检测限":
+            # 有益菌未检出是偏低，有害菌未检出是正常
+            return "偏低" if is_beneficial else "正常"
+        
+        # 去除百分号
+        result_val = float(result.replace("%", ""))
+        
+        # 解析参考范围
+        ref_range = ref_range.strip()
+        if "-" in ref_range:
+            parts = ref_range.split("-")
+            if len(parts) == 2:
+                min_ref = float(parts[0].strip())
+                max_ref = float(parts[1].strip())
+                
+                if result_val < min_ref:
+                    return "偏低" if is_beneficial else "正常"
+                elif result_val > max_ref:
+                    return "偏高"
+                else:
+                    return "正常"
+            elif ref_range.startswith(">"):
+                min_ref = float(ref_range[1:].strip())
+                if result_val < min_ref:
+                    return "偏低" if is_beneficial else "正常"
+                else:
+                    return "正常"
+            elif ref_range.startswith("<"):
+                max_ref = float(ref_range[1:].strip())
+                if result_val > max_ref:
+                    return "偏高"
+                else:
+                    return "正常"
+        elif ref_range == "0":
+            # 参考范围为0通常表示有害菌不应检出
+            return "正常"
+    except Exception as e:
+        logger.warning(f"计算评价失败: result={result}, ref_range={ref_range}, error={e}")
+    
+    return ""
+
+
+def calculate_neutral_evaluation(result: str, ref_range: str) -> str:
+    """计算中性菌的评价：未检出、偏低、偏高都算异常"""
+    try:
+        if result == "ND" or result == "未检出" or result == "低于检测限":
+            return "偏低"
+        
+        result_val = float(result.replace("%", ""))
+        
+        ref_range = ref_range.strip()
+        if "-" in ref_range:
+            parts = ref_range.split("-")
+            if len(parts) == 2:
+                min_ref = float(parts[0].strip())
+                max_ref = float(parts[1].strip())
+                
+                if result_val < min_ref:
+                    return "偏低"
+                elif result_val > max_ref:
+                    return "偏高"
+                else:
+                    return "正常"
+        elif ref_range == "0":
+            return "正常"
+    except Exception as e:
+        logger.warning(f"计算中性菌评价失败: result={result}, ref_range={ref_range}, error={e}")
+    
+    return ""
+
+
 def parse_beneficial_bacteria(text: str) -> list:
-    """解析有益菌检测"""
+    """解析有益菌检测（PDF第13-20页）"""
     bacteria = []
     
-    # 查找有益菌区域
+    # 提取第13-20页的内容
+    page_pattern = r"----- 第(\d+)页 -----\n(.*?)(?=----- 第|$)"
+    pages = re.findall(page_pattern, text, re.DOTALL)
+    
+    # 调试：打印所有找到的页码
+    logger.info(f"有益菌解析 - 找到的所有页码: {[p[0] for p in pages]}")
+    
+    # 合并第13-20页的内容
+    target_text = ""
+    for page_num, page_content in pages:
+        if 13 <= int(page_num) <= 20:
+            target_text += page_content + "\n"
+            logger.info(f"有益菌解析 - 已提取第{page_num}页内容，长度: {len(page_content)}")
+    
+    logger.info(f"有益菌解析 - 目标文本总长度: {len(target_text)}")
+    
+    # 调试：打印目标文本的前3000字符
+    if target_text:
+        logger.info(f"有益菌解析 - 目标文本预览:\n{target_text[:3000]}")
+    
+    # 查找有益菌相关区域（包含双歧杆菌属、乳杆菌属等有益菌属）
     section_patterns = [
-        r"3\.1\s*有益菌.*?\n(.*?)(?=3\.2|有害菌|$)",
-        r"有益菌检测.*?\n(.*?)(?=有害菌|$)",
+        r"(双歧杆菌属[\s\S]*?)(?=\n\n|\Z)",
+        r"(乳杆菌属[\s\S]*?)(?=\n\n|\Z)",
+        r"(有益菌检测[\s\S]*?)(?=\n\n|\Z)",
+        r"(3\.1.*?有益菌[\s\S]*?)(?=3\.2|有害菌|\n\n\n)",
     ]
     
     section_text = ""
-    for pattern in section_patterns:
-        match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+    for i, pattern in enumerate(section_patterns):
+        match = re.search(pattern, target_text, re.IGNORECASE)
         if match:
-            section_text = match.group(1)
-            break
+            section_text += match.group(0) + "\n"
+            logger.info(f"有益菌解析 - 成功匹配模式{i+1}: {pattern[:30]}...")
+            logger.info(f"有益菌解析 - 匹配到的区域长度: {len(section_text)}")
+    
+    if not section_text:
+        logger.warning("有益菌解析 - 未找到有益菌区域，将使用默认数据")
+        return bacteria
+    
+    # 调试：打印完整的区域内容
+    logger.info(f"有益菌解析 - 提取到的区域完整内容:\n{section_text}")
     
     if section_text:
         lines = section_text.strip().split("\n")
-        for line in lines:
-            line = line.strip()
-            if not line or "菌名" in line or "结果" in line or "---" in line:
+        logger.info(f"有益菌解析 - 共解析到{len(lines)}行")
+        
+        # 调试：打印所有行
+        for line_num, line in enumerate(lines):
+            logger.info(f"有益菌解析 - 第{line_num}行原始内容: '{line.strip()}'")
+        
+        # 处理跨行数据：将拉丁名和微生物名合并
+        merged_lines = []
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            if not line:
+                i += 1
                 continue
             
-            # 匹配多种格式
-            patterns = [
-                r"(.+?菌)[\s:：]+([\d.]+%|低于检测限|未检出|正常|偏低|偏高)",
-                r"(.+?)[\s:：]+([\d.]+%|低于检测限|未检出)",
-            ]
+            # 如果当前行看起来是拉丁名（全英文），且下一行包含"菌"，则合并
+            if re.match(r"^[A-Za-z]+(?:[-.][A-Za-z]+)*$", line) and i + 1 < len(lines):
+                next_line = lines[i+1].strip()
+                if "菌" in next_line:
+                    merged_lines.append(next_line + " " + line)
+                    i += 2
+                    continue
             
-            for pattern in patterns:
-                match = re.match(pattern, line)
-                if match:
-                    name = match.group(1).strip()
-                    result = match.group(2).strip()
-                    if "菌" in name:
-                        bacteria.append({
-                            "name": name,
-                            "result": result,
-                        })
-                        break
+            merged_lines.append(line)
+            i += 1
+        
+        logger.info(f"有益菌解析 - 合并后共{len(merged_lines)}行")
+        
+        for line_num, line in enumerate(merged_lines):
+            line = line.strip()
+            
+            # 跳过表头和分隔线
+            if not line or "菌名" in line or "结果" in line or "---" in line or "相对丰度" in line or "微生物名" in line or "拉丁名" in line or "检测结果" in line or "参考范围" in line or "地址：" in line or "报告编号" in line:
+                logger.info(f"有益菌解析 - 第{line_num}行跳过（表头或空行）")
+                continue
+            
+            # 匹配格式：菌属名 [拉丁名] 检测结果 参考范围 [结果评价]
+            # 格式1：双歧杆菌属 Bifidobacterium 0.0006 0.0282-15.4602
+            # 格式2：粪杆菌属 Faecalibacterium 2.3593 5.0000-15.0000
+            pattern = r"(.+?菌属?)\s*(?:[\w.]+\s+)?([\d.]+|ND|未检出|低于检测限)\s+([\d.-]+(?:-[\d.]+)?)\s*([\u4e00-\u9fa5]+)?"
+            
+            match = re.match(pattern, line)
+            if match:
+                name = match.group(1).strip()
+                result = match.group(2).strip()
+                ref_range = match.group(3).strip()
+                evaluation = match.group(4).strip() if match.group(4) else ""
+                
+                logger.info(f"有益菌解析 - 第{line_num}行匹配成功（原始）: name={name}, result={result}, ref_range={ref_range}, evaluation={evaluation}")
+                
+                # 如果OCR没有识别到评价，根据检测结果和参考范围计算
+                if not evaluation:
+                    evaluation = calculate_evaluation(result, ref_range, is_beneficial=True)
+                    logger.info(f"有益菌解析 - 第{line_num}行计算评价: {evaluation}")
+                
+                # 只保留评价为偏低或偏高的记录
+                if evaluation not in ("偏低", "偏高"):
+                    logger.info(f"有益菌解析 - 第{line_num}行跳过（评价不是偏低/偏高）: {evaluation}")
+                    continue
+                
+                # 转换ND为未检出
+                if result == "ND":
+                    result = "未检出"
+                # 添加百分号
+                if re.match(r"^[\d.]+$", result):
+                    result = f"{result}%"
+                
+                bacteria.append({
+                    "name": name,
+                    "result": result,
+                    "ref_range": ref_range,
+                    "evaluation": evaluation,
+                })
+                logger.info(f"有益菌解析 - 第{line_num}行已添加: {name} | {result} | {ref_range} | {evaluation}")
+                
+                # 控制行数在10行
+                if len(bacteria) >= 10:
+                    logger.info(f"有益菌解析 - 已达到10行限制，停止解析")
+                    break
+            elif "菌" in line:
+                logger.warning(f"有益菌解析 - 第{line_num}行未匹配正则: {line}")
+            else:
+                logger.info(f"有益菌解析 - 第{line_num}行跳过（不含菌）: {line[:50]}")
+    
+    logger.info(f"有益菌解析 - 最终提取到{len(bacteria)}条有益菌数据（仅偏低/偏高）")
+    for idx, b in enumerate(bacteria):
+        logger.info(f"有益菌解析 - 结果[{idx}]: {b['name']} | {b['result']} | {b['ref_range']} | {b['evaluation']}")
     
     return bacteria
 
 
 def parse_harmful_bacteria(text: str) -> list:
-    """解析有害菌/致病菌检测"""
+    """解析有害菌/中性菌检测（PDF第13-20页）"""
     bacteria = []
     
-    # 查找有害菌区域
-    section_patterns = [
-        r"3\.2\s*有害菌.*?\n(.*?)(?=3\.3|B/E|$)",
-        r"有害菌[/／]致病菌检测.*?\n(.*?)(?=B/E|$)",
+    # 有害菌和中性菌列表
+    harmful_and_neutral_genera = [
+        "产气荚膜梭菌", "肉毒梭菌", "沙门菌属", "大肠埃希菌", "肺炎克雷伯菌",
+        "单核细胞增生李斯特菌", "克罗诺杆菌属", "艰难梭菌", "金黄色葡萄球菌",
+        "铜绿假单胞菌", "鲍曼不动杆菌", "肠球菌属", "链球菌属", "葡萄球菌属",
+        "肠杆菌属", "克雷伯氏菌属", "柠檬酸杆菌属", "沙雷氏菌属", "变形杆菌属",
+        "摩根菌属", "普罗威登斯菌属", "假单胞菌属", "不动杆菌属", "放线菌属",
+        "梭杆菌属", "韦荣球菌属", "嗜胆菌属", "脱硫弧菌属", "萨特氏菌属",
+        "粪芽孢菌属", "真杆菌属", "毛梭菌属", "罗斯氏菌属", "考拉杆菌属"
     ]
     
-    section_text = ""
-    for pattern in section_patterns:
-        match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
-        if match:
-            section_text = match.group(1)
-            break
+    # 提取第13-20页的内容
+    page_pattern = r"----- 第(\d+)页 -----\n(.*?)(?=----- 第|$)"
+    pages = re.findall(page_pattern, text, re.DOTALL)
     
-    if section_text:
+    # 调试：打印所有找到的页码
+    logger.info(f"有害菌解析 - 找到的所有页码: {[p[0] for p in pages]}")
+    
+    # 合并第13-20页的内容
+    target_text = ""
+    for page_num, page_content in pages:
+        if 13 <= int(page_num) <= 20:
+            target_text += page_content + "\n"
+            logger.info(f"有害菌解析 - 已提取第{page_num}页内容，长度: {len(page_content)}")
+    
+    logger.info(f"有害菌解析 - 目标文本总长度: {len(target_text)}")
+    
+    # 调试：打印目标文本的前3000字符
+    if target_text:
+        logger.info(f"有害菌解析 - 目标文本预览:\n{target_text[:3000]}")
+    
+    # 分别查找有害菌和中性菌区域
+    # 查找有害菌区域（10.4）
+    harmful_pattern = r"10\.4.*?有害菌[\s\S]*?(?=10\.5|注：|\n\n\n)"
+    harmful_section = ""
+    match = re.search(harmful_pattern, target_text, re.IGNORECASE)
+    if match:
+        harmful_section = match.group(0) + "\n"
+        logger.info(f"有害菌解析 - 成功匹配有害菌区域，长度: {len(harmful_section)}")
+    
+    # 查找中性菌区域（10.5）
+    neutral_pattern = r"10\.5.*?中性菌[\s\S]*?(?=\n\n\n|\Z)"
+    neutral_section = ""
+    match = re.search(neutral_pattern, target_text, re.IGNORECASE)
+    if match:
+        neutral_section = match.group(0) + "\n"
+        logger.info(f"有害菌解析 - 成功匹配中性菌区域，长度: {len(neutral_section)}")
+    
+    # 如果没有找到分开的区域，尝试其他模式
+    if not harmful_section and not neutral_section:
+        logger.info("有害菌解析 - 未找到10.4和10.5区域，尝试其他模式")
+        section_patterns = [
+            r"有害菌[/／]中性菌检测[\s\S]*?(?=\n\n|\Z)",
+            r"有害菌[/／]致病菌检测[\s\S]*?(?=\n\n|\Z)",
+            r"中性菌检测[\s\S]*?(?=\n\n|\Z)",
+            r"产气荚膜梭菌[\s\S]*?(?=\n\n|\Z)",
+            r"3\.2.*?有害菌[\s\S]*?(?=3\.3|B/E|\n\n\n)",
+        ]
+        for i, pattern in enumerate(section_patterns):
+            match = re.search(pattern, target_text, re.IGNORECASE)
+            if match:
+                harmful_section += match.group(0) + "\n"
+                logger.info(f"有害菌解析 - 成功匹配模式{i+1}: {pattern[:30]}...")
+    
+    # 如果没找到区域，使用默认数据
+    if not harmful_section and not neutral_section:
+        logger.warning("有害菌解析 - 未找到有害菌/中性菌区域，将使用默认数据")
+        return bacteria
+    
+    # 定义一个处理区域的函数
+    def process_section(section_text: str, is_neutral: bool = False):
+        """处理单个区域的文本，is_neutral=True表示中性菌"""
+        section_bacteria = []
+        
+        if not section_text:
+            return section_bacteria
+        
         lines = section_text.strip().split("\n")
-        for line in lines:
-            line = line.strip()
-            if not line or "菌名" in line or "结果" in line or "---" in line:
+        logger.info(f"有害菌解析 - {'中性菌' if is_neutral else '有害菌'}区域共解析到{len(lines)}行")
+        
+        # 调试：打印所有行
+        for line_num, line in enumerate(lines):
+            logger.info(f"有害菌解析 - 第{line_num}行原始内容: '{line.strip()}'")
+        
+        # 处理跨行数据：将拉丁名和微生物名合并
+        merged_lines = []
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            if not line:
+                i += 1
                 continue
             
-            # 匹配多种格式
-            patterns = [
-                r"(.+?菌)[\s:：]+(未检出|检出|[\d.]+%|正常|异常)",
-                r"(.+?)[\s:：]+(未检出|检出|[\d.]+%)",
-            ]
+            # 如果当前行看起来是拉丁名（全英文），且下一行包含"菌"，则合并
+            if re.match(r"^[A-Za-z]+(?:[-.][A-Za-z]+)*$", line) and i + 1 < len(lines):
+                next_line = lines[i+1].strip()
+                if "菌" in next_line:
+                    merged_lines.append(next_line + " " + line)
+                    i += 2
+                    continue
             
-            for pattern in patterns:
-                match = re.match(pattern, line)
-                if match:
-                    name = match.group(1).strip()
-                    result = match.group(2).strip()
-                    if "菌" in name:
-                        bacteria.append({
-                            "name": name,
-                            "result": result,
-                        })
-                        break
+            merged_lines.append(line)
+            i += 1
+        
+        logger.info(f"有害菌解析 - {'中性菌' if is_neutral else '有害菌'}区域合并后共{len(merged_lines)}行")
+        
+        for line_num, line in enumerate(merged_lines):
+            line = line.strip()
+            
+            # 跳过表头、分隔线、地址和报告编号
+            if not line or "菌名" in line or "结果" in line or "---" in line or "检测结果" in line or "参考范围" in line or "地址：" in line or "报告编号" in line or "注：" in line or "10.4" in line or "10.5" in line:
+                logger.info(f"有害菌解析 - 第{line_num}行跳过（表头或空行）")
+                continue
+            
+            # 匹配格式：菌属名 [拉丁名] 检测结果 参考范围 [结果评价]
+            pattern = r"(.+?菌属?)\s*(?:[\w.]+\s+)?([\d.]+|ND|未检出|检出)\s+([\d.-]+(?:-[\d.]+)?)\s*([\u4e00-\u9fa5]+)?"
+            
+            match = re.match(pattern, line)
+            if match:
+                name = match.group(1).strip()
+                result = match.group(2).strip()
+                ref_range = match.group(3).strip()
+                evaluation = match.group(4).strip() if match.group(4) else ""
+                
+                logger.info(f"有害菌解析 - 第{line_num}行匹配成功（{'中性菌' if is_neutral else '有害菌'}）: name={name}, result={result}, ref_range={ref_range}, evaluation={evaluation}")
+                
+                # 如果OCR没有识别到评价，根据检测结果和参考范围计算
+                if not evaluation:
+                    if is_neutral:
+                        # 中性菌：未检出、偏低、偏高都算异常
+                        evaluation = calculate_neutral_evaluation(result, ref_range)
+                    else:
+                        # 有害菌：只有偏高算异常
+                        evaluation = calculate_evaluation(result, ref_range, is_beneficial=False)
+                    logger.info(f"有害菌解析 - 第{line_num}行计算评价: {evaluation}")
+                
+                # 保留异常记录
+                if evaluation in ("偏低", "偏高", "异常"):
+                    # 转换ND为未检出
+                    if result == "ND":
+                        result = "未检出"
+                    # 添加百分号
+                    if re.match(r"^[\d.]+$", result):
+                        result = f"{result}%"
+                    
+                    section_bacteria.append({
+                        "name": name,
+                        "result": result,
+                        "ref_range": ref_range,
+                        "evaluation": evaluation,
+                    })
+                    logger.info(f"有害菌解析 - 第{line_num}行已添加: {name} | {result} | {ref_range} | {evaluation}")
+                else:
+                    logger.info(f"有害菌解析 - 第{line_num}行跳过（评价不是异常）: {evaluation}")
+            elif "菌" in line:
+                logger.warning(f"有害菌解析 - 第{line_num}行未匹配正则: {line}")
+            else:
+                logger.info(f"有害菌解析 - 第{line_num}行跳过（不含菌）: {line[:50]}")
+        
+        return section_bacteria
+    
+    # 先处理中性菌区域（因为中性菌更可能有异常）
+    neutral_bacteria = process_section(neutral_section, is_neutral=True)
+    bacteria.extend(neutral_bacteria)
+    
+    # 然后处理有害菌区域
+    harmful_bacteria = process_section(harmful_section, is_neutral=False)
+    bacteria.extend(harmful_bacteria)
+    
+    # 控制总条数在10行
+    bacteria = bacteria[:10]
+    
+    logger.info(f"有害菌解析 - 最终提取到{len(bacteria)}条有害菌/中性菌数据（仅偏低/偏高）")
+    for idx, b in enumerate(bacteria):
+        logger.info(f"有害菌解析 - 结果[{idx}]: {b['name']} | {b['result']} | {b['ref_range']} | {b['evaluation']}")
     
     return bacteria
 
